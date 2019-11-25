@@ -2,6 +2,9 @@ const assert = require('assert');
 const knex = require('knex'); // TODO: Drop knex once driver supports inserting.
 const { Query, Driver } = require('../src');
 
+// If set, show all parsed queries and results.
+const DEBUG = false;
+
 describe('RTDS query', () => {
   let db;
   let driver;
@@ -29,6 +32,7 @@ describe('RTDS query', () => {
 
     await db('users').insert(require('./sample-data/users.json'));
     await db('todos').insert(require('./sample-data/todos.json'));
+    await db('projects').insert(require('./sample-data/projects.json'));
 
     driver = Driver.create(DATABASE_URL);
   });
@@ -46,6 +50,11 @@ describe('RTDS query', () => {
   const test = async (query, result) => {
     const q = new Query(query);
     const res = await driver.getAll(q);
+    if (DEBUG) {
+      console.dir(q, {depth: null});
+      console.log('=>');
+      console.dir(res, {depth: null});
+    }
     assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} failed.`);
   };
 
@@ -85,22 +94,60 @@ describe('RTDS query', () => {
     });
   });
 
-  xdescribe('Inner join query', () => {
-    it('can make simple inner join', async () => {
-      await test({
-        table: 'todos',
-        select: ['id', 'title'],
-        members: [
-          {
-            name: 'creator',
-            table: 'users',
-            select: ['id', 'name'],
-            join: ['users.id', 'todos.creatorId']
-          }
-        ]
-      }, [
+  describe('Cross join query', () => {
+    it('can make simple cross join', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['age']
+        },
+        {
+          table: 'projects',
+          select: ['name']
+        }
+      ], [
+        {
+          age: 21,
+          name: 'Busy Project'
+        },
+        {
+          age: 21,
+          name: 'Empty Project'
+        },
+        {
+          age: 33,
+          name: 'Busy Project'
+        },
+        {
+          age: 33,
+          name: 'Empty Project'
+        },
+        {
+          age: 44,
+          name: 'Busy Project'
+        },
+        {
+          age: 44,
+          name: 'Empty Project'
+        }
       ]);
     });
   });
 
+  xdescribe('Inner join query', () => {
+    it('can make simple inner join', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['name']
+        },
+        {
+          table: 'todos',
+          select: ['title'],
+          join: ['users.id', 'todos.creatorId']
+        }
+      ], [
+      ]);
+    });
+  });
 });

@@ -24,6 +24,10 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
   }
 
+  buildJoinSQL(join) {
+    return `${join.type.toUpperCase()} JOIN`;
+  }
+
   async runSelectQuery(sql) {
     throw new Error(`Driver ${this.constructor.name} does not implement runSelectQuery().`);
   }
