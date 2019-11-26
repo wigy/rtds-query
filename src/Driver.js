@@ -20,12 +20,12 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
   }
 
-  escapeFrom(table) {
+  escapeJoin(table, variable = null) {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
   }
 
-  buildJoinSQL(join) {
-    return `${join.type.toUpperCase()} JOIN`;
+  escapeFrom(table) {
+    throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
   }
 
   async runSelectQuery(sql) {
@@ -63,6 +63,10 @@ class SqliteDriver extends Driver {
       sql += ` AS \`${as}\``;
     }
     return sql;
+  }
+
+  escapeJoin(table, variable = null) {
+    return variable === null ? `\`${table}\`` : this.escapeSelect(table, variable);
   }
 
   escapeFrom(table) {

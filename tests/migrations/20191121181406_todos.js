@@ -18,6 +18,7 @@ exports.up = async function(knex, Promise) {
   });
   await knex.schema.createTable('projects', function (table) {
     table.increments('id');
+    table.integer('creatorId').unsigned().notNullable();
     table.string('name', 256).notNullable();
   });
 };

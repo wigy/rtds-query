@@ -8,6 +8,7 @@ class QueryNode {
     Object.assign(this, q);
     this.next = null;
     this.prev = null;
+    this.parent = null;
   }
 
   /**
@@ -60,11 +61,19 @@ class QueryNode {
 
   /**
    * Append the query as chained continuation for this query.
-   * @param {Query} q
+   * @param {QueryNode} q
    */
   chain(q) {
     this.next = q;
     q.prev = this;
+  }
+
+  /**
+   * Make structural relationship to the other query.
+   * @param {QueryNode} q
+   */
+  addChild(q) {
+    q.parent = this;
   }
 }
 
@@ -85,6 +94,10 @@ class Field extends QueryNode {
 
   buildSelectSQL(driver) {
     return [driver.escapeSelect(this.table, this.field, this.as)];
+  }
+
+  buildJoinSQL(driver) {
+    return [driver.escapeJoin(this.table, this.field)];
   }
 
   /**
@@ -109,14 +122,23 @@ class Field extends QueryNode {
 
 /**
  * Description of the table join.
+ *
+ * Parameters:
+ * - `type` join type 'cross', 'inner', 'left', 'right'.
+ * - `table` name of the table
+ * - `links` connected fields as pairs [<Field1>, <Field2>].
  */
 class Join extends QueryNode {
   constructor(q) {
     if (!q.type) {
       throw new Error(`Join type missing in query ${JSON.stringify(q)}`);
     }
+    if (!q.table) {
+      throw new Error(`Join table missing in query ${JSON.stringify(q)}`);
+    }
     super({
       type: q.type,
+      table: q.table,
       links: q.links || []
     });
   }
@@ -126,21 +148,32 @@ class Join extends QueryNode {
    * @param {Driver} driver
    */
   buildJoinSQL(driver) {
-    return driver.buildJoinSQL(this);
+    let sql = `${this.type.toUpperCase()} JOIN ${driver.escapeJoin(this.table)}`;
+    if (this.links.length) {
+      sql += ' ON ';
+      this.links.forEach(link => {
+        sql += `${link[0].buildJoinSQL(driver)} = ${link[1].buildJoinSQL(driver)}`;
+      });
+    }
+    return sql;
   }
 
   static parse(q) {
-    if (!q.join) {
-      return new Join({type: 'cross'});
-    }
     if (q.join instanceof Array && q.join.length === 2) {
       const links = [[
         Field.parse(q.join[0]),
         Field.parse(q.join[1])
       ]];
-      return new Join({ type: 'inner', links});
+      return new Join({ type: 'inner', links, table: q.table});
+    } else if (q.leftJoin instanceof Array && q.leftJoin.length === 2) {
+      const links = [[
+        Field.parse(q.leftJoin[0]),
+        Field.parse(q.leftJoin[1])
+      ]];
+      return new Join({ type: 'left', links, table: q.table});
+    } else {
+      return new Join({type: 'cross', table: q.table});
     }
-    throw new Error(`Unable to parse join ${JSON.stringify(q)}`);
   }
 }
 
@@ -151,13 +184,15 @@ class Join extends QueryNode {
  * - `table` name of the table
  * - `select` a list of members to select
  * - `join` what join type is used to link this to previous table unless first
+ * - `members` additional Select nodes to treat as object members of the result lines
  */
 class Select extends QueryNode {
   constructor(q) {
     super({
       table: q.table,
       select: q.select,
-      join: q.join || undefined
+      join: q.join || undefined,
+      members: q.members || undefined
     });
   }
 
@@ -170,14 +205,16 @@ class Select extends QueryNode {
   }
 
   buildFromSQL(driver) {
-    let first = driver.escapeFrom(this.table);
+    let ret;
     if (this.prev) {
       if (!this.join) {
         throw new Error(`Type of join not defined in ${JSON.stringify(this)}`);
       }
-      first = `${this.join.buildJoinSQL(driver)} ${first}`;
+      ret = [`${this.join.buildJoinSQL(driver)}`];
+    } else {
+      ret = [driver.escapeFrom(this.table)];
     }
-    let ret = [first];
+
     if (this.next) {
       ret = ret.concat(this.next.buildFromSQL(driver));
     }
@@ -191,7 +228,12 @@ class Select extends QueryNode {
   static parse(q) {
     const join = Join.parse(q);
     const select = q.select.map(s => Field.parse(s, q.table));
-    return new Select({table: q.table, select, join});
+    const ret = new Select({table: q.table, select, join});
+    if (q.members && q.members.length) {
+      ret.chain(q.members[0]);
+      q.members.forEach(m => ret.addChild(m));
+    }
+    return ret;
   }
 }
 
@@ -202,7 +244,19 @@ class Select extends QueryNode {
  */
 class Query {
   constructor(q = Object) {
+    this.sql = {};
     this.root = Query.parse(q);
+  }
+
+  /**
+   * Create a cached copy of the SQL for retrieving all.
+   * @param {Driver} driver
+   */
+  getAllSQL(driver) {
+    if (!this.sql.all) {
+      this.sql.all = this.root.getAllSQL(driver);
+    }
+    return this.sql.all;
   }
 
   /**
@@ -235,12 +289,10 @@ class Query {
       return ret;
     }
     q = clone(q);
-    const keys = new Set(Object.keys(q));
-    if (keys.has('members')) {
-      // TODO: Implement joins as chained selects.
-      console.log(q.members);
-    }
-    if (keys.has('select')) {
+    if (q.select) {
+      if (q.members) {
+        q.members = q.members.map(m => Query.parse(m));
+      }
       return Select.parse(q);
     }
     throw new Error(`Unable to parse query ${JSON.stringify(q)}`);

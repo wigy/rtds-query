@@ -3,7 +3,7 @@ const knex = require('knex'); // TODO: Drop knex once driver supports inserting.
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = false;
+const DEBUG = true;
 
 describe('RTDS query', () => {
   let db;
@@ -49,13 +49,17 @@ describe('RTDS query', () => {
    */
   const test = async (query, result) => {
     const q = new Query(query);
+    if (DEBUG) {
+      console.log();
+      console.dir(q, {depth: null});
+      console.log('==', q.getAllSQL(driver) + ';');
+    }
     const res = await driver.getAll(q);
     if (DEBUG) {
-      console.dir(q, {depth: null});
       console.log('=>');
       console.dir(res, {depth: null});
     }
-    assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} failed.`);
+    assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} converted to ${q.getAllSQL(driver)} failed.`);
   };
 
   /**
@@ -134,7 +138,7 @@ describe('RTDS query', () => {
     });
   });
 
-  xdescribe('Inner join query', () => {
+  describe('Inner join query', () => {
     it('can make simple inner join', async () => {
       await test([
         {
@@ -147,6 +151,96 @@ describe('RTDS query', () => {
           join: ['users.id', 'todos.creatorId']
         }
       ], [
+        {
+          name: 'Alice A',
+          title: 'Find something'
+        },
+        {
+          name: 'Alice A',
+          title: 'Cook something'
+        },
+        {
+          name: 'Bob B',
+          title: 'Run unit-test'
+        },
+        {
+          name: 'Bob B',
+          title: 'Write unit-test'
+        }
+      ]);
+    });
+
+    xit('can add members with inner join', async () => {
+      await test([
+        {
+          table: 'todos',
+          select: ['title'],
+          members: [
+            {
+              table: 'users',
+              select: ['name'],
+              join: ['users.id', 'todos.creatorId']
+            }
+          ]
+        }
+      ], [
+        {
+          title: 'Find something',
+          users: {
+            name: 'Alice A'
+          }
+        },
+        {
+          title: 'Cook something',
+          users: {
+            name: 'Alice A'
+          }
+        },
+        {
+          title: 'Run unit-test',
+          users: {
+            name: 'Bob B'
+          }
+        },
+        {
+          title: 'Write unit-test',
+          users: {
+            name: 'Bob B'
+          }
+        }
+      ]);
+    });
+  });
+
+  describe('Left join query', () => {
+    it('can make simple left join', async () => {
+      await test([
+        {
+          table: 'todos',
+          select: ['title']
+        },
+        {
+          table: 'users',
+          select: [{name: 'owner'}],
+          leftJoin: ['users.id', 'todos.ownerId']
+        }
+      ], [
+        {
+          owner: null,
+          title: 'Find something'
+        },
+        {
+          owner: 'Carl C',
+          title: 'Cook something'
+        },
+        {
+          owner: 'Bob B',
+          title: 'Run unit-test'
+        },
+        {
+          owner: null,
+          title: 'Write unit-test'
+        }
       ]);
     });
   });
