@@ -1,23 +1,76 @@
 const clone = require('clone');
 
+// Running reference number counter.
+let ref = 0;
+
 /**
  * Base class for query tree elements.
  */
 class QueryNode {
   constructor(q) {
+    this.ref = ++ref;
     Object.assign(this, q);
     this.next = null;
     this.prev = null;
     this.parent = null;
+    this.children = [];
   }
 
   /**
-   * Avoid circulars due to `next` and `prev` fields.
+   * Print out structural description of the node tree.
+   */
+  dump(tab = '') {
+    if (tab === '') {
+      console.log('Chain:', this.getChain().map(c => `#${c.ref}`).join(' -> '));
+    }
+    console.log(`${tab}Ref. #${this.ref} ${this.constructor.name} '${this.getDumpName()}'`);
+    for (const c of this.children) {
+      c.dump(tab + '  ');
+    }
+  }
+
+  /**
+   * Construct a chain of nodes.
+   */
+  getChain() {
+    return this.next ? [this].concat(this.next.getChain()) : [this];
+  }
+
+  /**
+   * Get the name for debugging purposes.
+   */
+  getDumpName() {
+    return this.getFullName();
+  }
+
+  /**
+   * Get the meaningful name for this node.
+   */
+  getName() {
+    throw new Error(`A query node ${this.constructor.name} does not implement getName().`);
+  }
+
+  /**
+   * Collect all names up until root element from parent chain separated by dots.
+   */
+  getFullName() {
+    let name = this.getName();
+    if (this.parent) {
+      const parent = this.parent.getFullName();
+      if (parent !== null) {
+        name = parent + '.' + name;
+      }
+    }
+    return name;
+  }
+
+  /**
+   * Avoid circulars due to structural fields.
    */
   toJSON() {
     const ret = {};
     Object.keys(this).forEach(k => {
-      if (k === 'next' || k === 'prev') {
+      if (k === 'next' || k === 'prev' || k === 'children' || k === 'parent') {
         return;
       }
       ret[k] = this[k];
@@ -64,6 +117,10 @@ class QueryNode {
    * @param {QueryNode} q
    */
   chain(q) {
+    // TODO: Allow insertion into the chain?
+    if (this.next) {
+      throw new Error('Already chained.');
+    }
     this.next = q;
     q.prev = this;
   }
@@ -74,6 +131,7 @@ class QueryNode {
    */
   addChild(q) {
     q.parent = this;
+    this.children.push(q);
   }
 }
 
@@ -92,8 +150,13 @@ class Field extends QueryNode {
     super({ table: q.table, field: q.field, as: q.as || q.field});
   }
 
+  getName() {
+    return this.as;
+  }
+
   buildSelectSQL(driver) {
-    return [driver.escapeSelect(this.table, this.field, this.as)];
+    const as = this.getFullName().split('.').splice(1).join('.');
+    return [driver.escapeSelect(this.table, this.field, as)];
   }
 
   buildJoinSQL(driver) {
@@ -121,6 +184,54 @@ class Field extends QueryNode {
 }
 
 /**
+ * A single table field description in the select query or in join.
+ *
+ * Parameters:
+ * - `table` name of the table
+ * - `field` a name of the field
+ */
+class JoinField extends Field {
+  constructor(q) {
+    super({ table: q.table, field: q.field});
+  }
+
+  getFullName() {
+    return this.table + '.' + this.field;
+  }
+
+  getName() {
+    return this.field;
+  }
+
+  buildSelectSQL(driver) {
+    return [driver.escapeSelect(this.table, this.field, this.as)];
+  }
+
+  buildJoinSQL(driver) {
+    return [driver.escapeJoin(this.table, this.field)];
+  }
+
+  /**
+   * Convert query descriptor to JoinField instance.
+   * @param {String|Object} q
+   * @param {String|null} table
+   */
+  static parse(q, table = null) {
+    if (typeof q === 'string') {
+      if (q.indexOf('.') >= 0) {
+        const parts = q.split('.');
+        return new JoinField({ table: parts[0], field: parts[1] });
+      }
+      return new JoinField({ table, field: q });
+    }
+    if (typeof q === 'object') {
+      return new JoinField({ table, field: Object.keys(q)[0], as: Object.values(q)[0]});
+    }
+    throw new Error(`Unable to parse a field ${JSON.stringify(q)}`);
+  }
+}
+
+/**
  * Description of the table join.
  *
  * Parameters:
@@ -141,6 +252,21 @@ class Join extends QueryNode {
       table: q.table,
       links: q.links || []
     });
+    for (const link of this.links) {
+      this.addChild(link[0]);
+      this.addChild(link[1]);
+    }
+  }
+
+  getDumpName() {
+    let ret = `${this.type} join ${this.table}`;
+    if (this.links.length) {
+      ret += ' on';
+      for (const link of this.links) {
+        ret += ` ${link[0].getDumpName()} = ${link[1].getDumpName()}`;
+      }
+    }
+    return ret;
   }
 
   /**
@@ -161,18 +287,18 @@ class Join extends QueryNode {
   static parse(q) {
     if (q.join instanceof Array && q.join.length === 2) {
       const links = [[
-        Field.parse(q.join[0]),
-        Field.parse(q.join[1])
+        JoinField.parse(q.join[0]),
+        JoinField.parse(q.join[1])
       ]];
       return new Join({ type: 'inner', links, table: q.table});
     } else if (q.leftJoin instanceof Array && q.leftJoin.length === 2) {
       const links = [[
-        Field.parse(q.leftJoin[0]),
-        Field.parse(q.leftJoin[1])
+        JoinField.parse(q.leftJoin[0]),
+        JoinField.parse(q.leftJoin[1])
       ]];
       return new Join({ type: 'left', links, table: q.table});
     } else {
-      return new Join({type: 'cross', table: q.table});
+      return null;
     }
   }
 }
@@ -192,8 +318,22 @@ class Select extends QueryNode {
       table: q.table,
       select: q.select,
       join: q.join || undefined,
-      members: q.members || undefined
+      members: q.members || []
     });
+    if (this.join) {
+      this.addChild(this.join);
+    }
+    for (const field of this.select) {
+      this.addChild(field);
+    }
+    if (this.members && this.members.length) {
+      this.chain(this.members[0]);
+      this.members.forEach(m => this.addChild(m));
+    }
+  }
+
+  getName() {
+    return this.table;
   }
 
   buildSelectSQL(driver) {
@@ -206,10 +346,7 @@ class Select extends QueryNode {
 
   buildFromSQL(driver) {
     let ret;
-    if (this.prev) {
-      if (!this.join) {
-        throw new Error(`Type of join not defined in ${JSON.stringify(this)}`);
-      }
+    if (this.join) {
       ret = [`${this.join.buildJoinSQL(driver)}`];
     } else {
       ret = [driver.escapeFrom(this.table)];
@@ -228,12 +365,16 @@ class Select extends QueryNode {
   static parse(q) {
     const join = Join.parse(q);
     const select = q.select.map(s => Field.parse(s, q.table));
-    const ret = new Select({table: q.table, select, join});
     if (q.members && q.members.length) {
-      ret.chain(q.members[0]);
-      q.members.forEach(m => ret.addChild(m));
+      q.members = q.members.map(m => Query.parse(m));
     }
-    return ret;
+    return new Select({table: q.table, select, join, members: q.members});
+  }
+}
+
+class ContainerNode extends QueryNode {
+  getName() {
+    return null;
   }
 }
 
@@ -246,6 +387,10 @@ class Query {
   constructor(q = Object) {
     this.sql = {};
     this.root = Query.parse(q);
+  }
+
+  dump() {
+    this.root.dump();
   }
 
   /**
@@ -271,28 +416,32 @@ class Query {
    * Parse an object to query tree.
    */
   static parse(q) {
+    q = clone(q);
     if (q instanceof Array) {
       if (!q.length) {
         throw new Error('Cannot construct query from empty array.');
       }
       let i = 0;
-      let ret;
-      do {
-        const part = Query.parse(q[i]);
-        if (i) {
-          ret.chain(part);
-        } else {
-          ret = part;
+      let ret = Query.parse(q[0]);
+      q[0] = ret;
+      if (q.length > 1) {
+        const container = new ContainerNode();
+        container.addChild(ret);
+        container.chain(ret);
+        ret = container;
+        for (i = 1; i < q.length; i++) {
+          q[i] = Query.parse(q[i]);
+          if (!q[i].join) {
+            q[i].join = new Join({type: 'cross', table: q[i].table});
+            q[i].addChild(q[i].join);
+          }
+          q[i - 1].chain(q[i]);
+          container.addChild(q[i]);
         }
-        i++;
-      } while (i < q.length);
+      }
       return ret;
     }
-    q = clone(q);
     if (q.select) {
-      if (q.members) {
-        q.members = q.members.map(m => Query.parse(m));
-      }
       return Select.parse(q);
     }
     throw new Error(`Unable to parse query ${JSON.stringify(q)}`);
