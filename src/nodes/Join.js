@@ -1,0 +1,76 @@
+const QueryNode = require('./QueryNode');
+const JoinField = require('./JoinField');
+
+/**
+ * Description of the table join.
+ *
+ * Parameters:
+ * - `type` join type 'cross', 'inner', 'left', 'right'.
+ * - `table` name of the table
+ * - `links` connected fields as pairs [<Field1>, <Field2>].
+ */
+class Join extends QueryNode {
+  constructor(q) {
+    if (!q.type) {
+      throw new Error(`Join type missing in query ${JSON.stringify(q)}`);
+    }
+    if (!q.table) {
+      throw new Error(`Join table missing in query ${JSON.stringify(q)}`);
+    }
+    super({
+      type: q.type,
+      table: q.table,
+      links: q.links || []
+    });
+    for (const link of this.links) {
+      this.addChild(link[0]);
+      this.addChild(link[1]);
+    }
+  }
+
+  getDumpName() {
+    let ret = `${this.type} join ${this.table}`;
+    if (this.links.length) {
+      ret += ' on';
+      for (const link of this.links) {
+        ret += ` ${link[0].getDumpName()} = ${link[1].getDumpName()}`;
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * Construct a JOIN sentence.
+   * @param {Driver} driver
+   */
+  buildJoinSQL(driver) {
+    let sql = `${this.type.toUpperCase()} JOIN ${driver.escapeJoin(this.table)}`;
+    if (this.links.length) {
+      sql += ' ON ';
+      this.links.forEach(link => {
+        sql += `${link[0].buildJoinSQL(driver)} = ${link[1].buildJoinSQL(driver)}`;
+      });
+    }
+    return sql;
+  }
+
+  static parse(q) {
+    if (q.join instanceof Array && q.join.length === 2) {
+      const links = [[
+        JoinField.parse(q.join[0]),
+        JoinField.parse(q.join[1])
+      ]];
+      return new Join({ type: 'inner', links, table: q.table});
+    } else if (q.leftJoin instanceof Array && q.leftJoin.length === 2) {
+      const links = [[
+        JoinField.parse(q.leftJoin[0]),
+        JoinField.parse(q.leftJoin[1])
+      ]];
+      return new Join({ type: 'left', links, table: q.table});
+    } else {
+      return null;
+    }
+  }
+}
+
+module.exports = Join;
