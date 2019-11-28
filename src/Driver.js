@@ -32,9 +32,20 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement runSelectQuery().`);
   }
 
+  /**
+   *
+   * @param {Object[]} data
+   * @param {} formula
+   */
+  postProcess(data, formula) {
+    return formula.process(data);
+  }
+
   static create(uri) {
     const url = new URL(uri);
     switch (url.protocol) {
+      case 'dummy:':
+        return new Driver(url);
       case 'sqlite:':
         return Driver.createSqlite(url);
       default:

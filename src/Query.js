@@ -1,4 +1,7 @@
 const clone = require('clone');
+const Formula = require('./Formula');
+
+// TODO: Split to separate files.
 
 // Running reference number counter.
 let ref = 0;
@@ -62,6 +65,17 @@ class QueryNode {
       }
     }
     return name;
+  }
+
+  /**
+   * Construct a post-processing formula for the query.
+   */
+  getPostFormula() {
+    const ret = {};
+    for (const c of this.children) {
+      Object.assign(ret, c.getPostFormula());
+    }
+    return ret;
   }
 
   /**
@@ -154,9 +168,12 @@ class Field extends QueryNode {
     return this.as;
   }
 
+  getAsName() {
+    return this.getFullName().split('.').splice(1).join('.');
+  }
+
   buildSelectSQL(driver) {
-    const as = this.getFullName().split('.').splice(1).join('.');
-    return [driver.escapeSelect(this.table, this.field, as)];
+    return [driver.escapeSelect(this.table, this.field, this.getAsName())];
   }
 
   buildJoinSQL(driver) {
@@ -336,6 +353,15 @@ class Select extends QueryNode {
     return this.table;
   }
 
+  getPostFormula() {
+    const ret = {};
+    ret.flat = this.select.reduce((prev, cur) => ({...prev, [cur.as]: cur.getAsName()}), {});
+    if (this.members.length) {
+      ret.members = this.members.map((m) => ({[m.getName()]: m.getPostFormula()}));
+    }
+    return ret;
+  }
+
   buildSelectSQL(driver) {
     let ret = this.select.reduce((prev, cur) => prev.concat(cur.buildSelectSQL(driver)), []);
     if (this.next) {
@@ -376,6 +402,26 @@ class ContainerNode extends QueryNode {
   getName() {
     return null;
   }
+
+  getPostFormula() {
+    const ret = {};
+    for (const c of this.children) {
+      const f = c.getPostFormula();
+      if (f.flat) {
+        if (!ret.flat) {
+          ret.flat = {};
+        }
+        Object.assign(ret.flat, f.flat);
+      }
+      if (f.members) {
+        if (!ret.members) {
+          ret.members = [];
+        }
+        ret.members = ret.members.concat(f.members);
+      }
+    }
+    return ret;
+  }
 }
 
 /*********************************************************************************/
@@ -404,12 +450,17 @@ class Query {
     return this.sql.all;
   }
 
+  getPostFormula() {
+    return new Formula(this.root.getPostFormula());
+  }
+
   /**
    * Execute a query to retrieve all fields specified in the query.
    * @param {Driver} driver
    */
   async getAll(driver) {
-    return this.root.getAll(driver);
+    const data = await this.root.getAll(driver);
+    return driver.postProcess(data, this.getPostFormula());
   }
 
   /**

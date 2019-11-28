@@ -190,32 +190,27 @@ describe('RTDS query', () => {
       ], [
         {
           title: 'Find something',
-          'users.creator': 'Alice A'
-          // TODO: Implement post-processing.
-          /* users: {
-            name: 'Alice A'
-          } */
+          users: {
+            creator: 'Alice A'
+          }
         },
         {
           title: 'Cook something',
-          'users.creator': 'Alice A'
-          /* users: {
-            name: 'Alice A'
-          } */
+          users: {
+            creator: 'Alice A'
+          }
         },
         {
           title: 'Run unit-test',
-          'users.creator': 'Bob B'
-          /* users: {
-            name: 'Bob B'
-          } */
+          users: {
+            creator: 'Bob B'
+          }
         },
         {
           title: 'Write unit-test',
-          'users.creator': 'Bob B'
-          /* users: {
-            name: 'Bob B'
-          } */
+          users: {
+            creator: 'Bob B'
+          }
         }
       ]);
     });
