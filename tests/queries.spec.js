@@ -178,11 +178,11 @@ describe('RTDS query', () => {
       await test([
         {
           table: 'todos',
-          select: ['title'], // TODO: Could support directly 'title'.
+          select: 'title',
           members: [
             {
               table: 'users',
-              select: [{ name: 'creator'}], // Could support directly { name: 'creator'}.
+              select: { name: 'creator'},
               join: ['users.id', 'todos.creatorId']
             }
           ]

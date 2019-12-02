@@ -74,7 +74,9 @@ class Select extends QueryNode {
    */
   static parse(q) {
     const Query = require('../Query');
-
+    if (!(q.select instanceof Array)) {
+      q.select = [q.select];
+    }
     const join = Join.parse(q);
     const select = q.select.map(s => Field.parse(s, q.table));
     if (q.members && q.members.length) {

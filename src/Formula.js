@@ -1,5 +1,6 @@
 // Helper to collect list of entries from line of data based on flat member list.
 const pick = (flat, line) => Object.entries(flat).reduce((prev, cur) => ({...prev, [cur[0]]: line[cur[1]]}), {});
+
 // Helper to construct entry for one line of data.
 const entry = (line, formula) => {
   const ret = formula.flat ? pick(formula.flat, line) : {};
@@ -26,6 +27,9 @@ class Formula {
    * (See test files.)
    */
   process(data) {
+    if (!this.objects) {
+      return data;
+    }
     return data.map(line => entry(line, this));
   }
 }
