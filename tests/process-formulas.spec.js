@@ -5,16 +5,14 @@ describe('Formula', () => {
   /**
    * Tests.
    */
-  it('can post process members', () => {
+  it('can post process data', () => {
     const formula = new Formula({
       flat: { id: 'id', name: 'name', title: 'title' },
-      members: [
-        {
-          users: {
-            flat: {id: 'users.id', creator: 'users.creator'}
-          }
+      objects: {
+        users: {
+          flat: {id: 'users.id', creator: 'users.creator'}
         }
-      ]
+      }
     });
     const data = [
       { id: 10, name: 'AA', title: 'A', 'users.id': 1, 'users.creator': 'U1' },
@@ -68,9 +66,7 @@ describe('Formula', () => {
     });
     assert.deepStrictEqual(q.getPostFormula(), new Formula({
       flat: { title: 'title' },
-      members: [
-        { users: {flat: { creator: 'users.creator' } } }
-      ]
+      objects: { users: {flat: { creator: 'users.creator' } } }
     }));
   });
 });

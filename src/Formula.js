@@ -3,19 +3,15 @@ const pick = (flat, line) => Object.entries(flat).reduce((prev, cur) => ({...pre
 // Helper to construct entry for one line of data.
 const entry = (line, formula) => {
   const ret = formula.flat ? pick(formula.flat, line) : {};
-  if (formula.members) {
-    formula.members.map(member => {
-      const value = {};
-      Object.entries(member).map(([k, v]) => {
-        value[k] = entry(line, v);
-      });
-      Object.assign(ret, value);
+  if (formula.objects) {
+    const value = {};
+    Object.entries(formula.objects).map(([k, v]) => {
+      value[k] = entry(line, v);
     });
+    Object.assign(ret, value);
   }
   return ret;
 };
-
-// TODO: Members should actually be changed to object and renamed as 'object'.
 
 /**
  * Collection of processing formulas.
@@ -30,7 +26,6 @@ class Formula {
    * (See test files.)
    */
   process(data) {
-    // TODO: Can pass through if no members.
     return data.map(line => entry(line, this));
   }
 }

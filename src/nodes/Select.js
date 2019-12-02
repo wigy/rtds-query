@@ -39,7 +39,9 @@ class Select extends QueryNode {
     const ret = {};
     ret.flat = this.select.reduce((prev, cur) => ({...prev, [cur.as]: cur.getAsName()}), {});
     if (this.members.length) {
-      ret.members = this.members.map((m) => ({[m.getName()]: m.getPostFormula()}));
+      const objects = this.members.map((m) => ({[m.getName()]: m.getPostFormula()}));
+      ret.objects = {};
+      objects.forEach(o => Object.assign(ret.objects, o));
     }
     return ret;
   }

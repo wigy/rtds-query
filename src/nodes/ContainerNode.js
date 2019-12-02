@@ -20,9 +20,9 @@ class ContainerNode extends QueryNode {
       }
       if (f.members) {
         if (!ret.members) {
-          ret.members = [];
+          ret.objects = {};
         }
-        ret.members = ret.members.concat(f.members);
+        Object.assign(ret.objects, f.objects);
       }
     }
     return ret;
