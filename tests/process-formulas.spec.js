@@ -69,4 +69,23 @@ describe('Formula', () => {
       objects: { users: {flat: { creator: 'users.creator' } } }
     }));
   });
+
+  it('can be constructed from query with aliased members', () => {
+    const q = new Query({
+      table: 'todos',
+      select: ['title'],
+      members: [
+        {
+          table: 'users',
+          as: 'creator',
+          select: 'name',
+          join: ['creator.id', 'todos.creatorId']
+        }
+      ]
+    });
+    assert.deepStrictEqual(q.getPostFormula(), new Formula({
+      flat: { title: 'title' },
+      objects: { creator: {flat: { name: 'creator.name' } } }
+    }));
+  });
 });

@@ -7,6 +7,7 @@ const Join = require('./Join');
  *
  * Parameters:
  * - `table` name of the table
+ * - `[as]` alias to be used when this is as a member (defaults to `table`)
  * - `select` a list of members to select
  * - `join` what join type is used to link this to previous table unless first
  * - `members` additional Select nodes to treat as object members of the result lines
@@ -15,6 +16,7 @@ class Select extends QueryNode {
   constructor(q) {
     super({
       table: q.table,
+      as: q.as || undefined,
       select: q.select,
       join: q.join || undefined,
       members: q.members || []
@@ -32,16 +34,25 @@ class Select extends QueryNode {
   }
 
   getName() {
-    return this.table;
+    return this.as || this.table;
+  }
+
+  getDumpName() {
+    let ret = this.getFullName();
+    if (this.as) {
+      ret += ` as ${this.as}`;
+    }
+    return ret;
   }
 
   getPostFormula() {
     const ret = {};
     ret.flat = this.select.reduce((prev, cur) => ({...prev, [cur.as]: cur.getAsName()}), {});
     if (this.members.length) {
-      const objects = this.members.map((m) => ({[m.getName()]: m.getPostFormula()}));
       ret.objects = {};
-      objects.forEach(o => Object.assign(ret.objects, o));
+      this.members.forEach(m => {
+        ret.objects[m.getName()] = m.getPostFormula();
+      });
     }
     return ret;
   }
@@ -82,7 +93,7 @@ class Select extends QueryNode {
     if (q.members && q.members.length) {
       q.members = q.members.map(m => Query.parse(m));
     }
-    return new Select({table: q.table, select, join, members: q.members});
+    return new Select({table: q.table, as: q.as, select, join, members: q.members});
   }
 }
 

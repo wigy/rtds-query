@@ -7,6 +7,7 @@ const JoinField = require('./JoinField');
  * Parameters:
  * - `type` join type 'cross', 'inner', 'left', 'right'.
  * - `table` name of the table
+ * - `[as]` alias to be used for this member (defaults to `table`)
  * - `links` connected fields as pairs [<Field1>, <Field2>].
  */
 class Join extends QueryNode {
@@ -20,6 +21,7 @@ class Join extends QueryNode {
     super({
       type: q.type,
       table: q.table,
+      as: q.as || undefined,
       links: q.links || []
     });
     for (const link of this.links) {
@@ -30,6 +32,9 @@ class Join extends QueryNode {
 
   getDumpName() {
     let ret = `${this.type} join ${this.table}`;
+    if (this.as) {
+      ret += ` as ${this.as}`;
+    }
     if (this.links.length) {
       ret += ' on';
       for (const link of this.links) {
@@ -45,6 +50,9 @@ class Join extends QueryNode {
    */
   buildJoinSQL(driver) {
     let sql = `${this.type.toUpperCase()} JOIN ${driver.escapeJoin(this.table)}`;
+    if (this.as) {
+      sql += ` AS ${this.as}`;
+    }
     if (this.links.length) {
       sql += ' ON ';
       this.links.forEach(link => {
@@ -60,13 +68,13 @@ class Join extends QueryNode {
         JoinField.parse(q.join[0]),
         JoinField.parse(q.join[1])
       ]];
-      return new Join({ type: 'inner', links, table: q.table});
+      return new Join({ type: 'inner', links, table: q.table, as: q.as});
     } else if (q.leftJoin instanceof Array && q.leftJoin.length === 2) {
       const links = [[
         JoinField.parse(q.leftJoin[0]),
         JoinField.parse(q.leftJoin[1])
       ]];
-      return new Join({ type: 'left', links, table: q.table});
+      return new Join({ type: 'left', links, table: q.table, as: q.as});
     } else {
       return null;
     }

@@ -15,7 +15,11 @@ const entry = (line, formula) => {
 };
 
 /**
- * Collection of processing formulas.
+ * A processing formula.
+ *
+ * A formula can have two fields:
+ * - `flat` - An object mapping from field names to SQL names.
+ * - `objects` - An object mapping sub-object names to sub-formulas.
  */
 class Formula {
   constructor(rules = {}) {
@@ -24,7 +28,7 @@ class Formula {
 
   /**
    * Combine rows of data to object structures according to the formula.
-   * (See test files.)
+   * (See test files for samples.)
    */
   process(data) {
     if (!this.objects) {

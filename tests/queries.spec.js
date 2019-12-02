@@ -216,6 +216,48 @@ describe('RTDS query', () => {
     });
   });
 
+  xit('can rename members when using inner join', async () => {
+    await test([
+      {
+        table: 'todos',
+        select: 'title',
+        members: [
+          {
+            table: 'users',
+            as: 'creator',
+            select: 'name',
+            join: ['creator.id', 'todos.creatorId']
+          }
+        ]
+      }
+    ], [
+      {
+        title: 'Find something',
+        creator: {
+          name: 'Alice A'
+        }
+      },
+      {
+        title: 'Cook something',
+        creator: {
+          name: 'Alice A'
+        }
+      },
+      {
+        title: 'Run unit-test',
+        creator: {
+          name: 'Bob B'
+        }
+      },
+      {
+        title: 'Write unit-test',
+        creator: {
+          name: 'Bob B'
+        }
+      }
+    ]);
+  });
+
   describe('Left join query', () => {
     it('can make simple left join', async () => {
       await test([
