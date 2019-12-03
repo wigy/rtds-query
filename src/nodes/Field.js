@@ -6,7 +6,7 @@ const QueryNode = require('./QueryNode');
  * Parameters:
  * - `table` name of the table
  * - `field` a name of the field
- * - `[as]` alias for the the field (defaults to `field`, not used in join)
+ * - `[as]` alias for the the field (defaults to `field`)
  *
  * Alternatively `field` can be an object with alias mapping`{<field>: <as>}`.
  */
@@ -24,7 +24,7 @@ class Field extends QueryNode {
   }
 
   buildSelectSQL(driver) {
-    return [driver.escapeSelect(this.table, this.field, this.getAsName())];
+    return [driver.escapeSelect(this.parent.getName(), this.field, this.getAsName())];
   }
 
   buildJoinSQL(driver) {

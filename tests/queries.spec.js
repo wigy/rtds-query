@@ -216,7 +216,7 @@ describe('RTDS query', () => {
     });
   });
 
-  xit('can rename members when using inner join', async () => {
+  it('can rename members when using inner join', async () => {
     await test([
       {
         table: 'todos',
