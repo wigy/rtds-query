@@ -413,5 +413,62 @@ describe('RTDS query', () => {
         }
       ]);
     });
+
+    xit('can chain into the same root twice with the same alias', async () => {
+      await test({
+        table: 'todos',
+        select: ['title'],
+        members: [
+          {
+            table: 'projects',
+            as: 'project',
+            select: 'name',
+            join: ['project.id', 'todos.projectId'],
+            members: [
+              {
+                table: 'users',
+                as: 'creator',
+                select: 'name',
+                join: ['creator.id', 'project.creatorId']
+              }
+            ]
+          },
+          {
+            table: 'users',
+            as: 'creator',
+            select: 'name',
+            join: ['creator.id', 'project.creatorId']
+          }
+        ]
+      },
+      [
+
+      ]);
+    });
+  });
+
+  describe('Specials', () => {
+    it('support `from` as an alias', async () => {
+      await test([
+        {
+          table: 'todos',
+          select: {title: 'from'},
+          members: [
+            {
+              table: 'users',
+              as: 'from',
+              select: {name: 'from'},
+              leftJoin: ['from.id', 'todos.ownerId']
+            }
+          ]
+        }
+      ],
+      [
+        { from: { from: null } },
+        { from: { from: 'Carl C' } },
+        { from: { from: 'Bob B' } },
+        { from: { from: null } }
+      ]);
+    });
   });
 });

@@ -51,7 +51,7 @@ class Join extends QueryNode {
   buildJoinSQL(driver) {
     let sql = `${this.type.toUpperCase()} JOIN ${driver.escapeJoin(this.table)}`;
     if (this.as) {
-      sql += ` AS ${this.as}`;
+      sql += ` AS ${driver.escapeFrom(this.as)}`;
     }
     if (this.links.length) {
       sql += ' ON ';

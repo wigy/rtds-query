@@ -21,11 +21,11 @@ class Driver {
   }
 
   escapeJoin(table, variable = null) {
-    throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
+    throw new Error(`Driver ${this.constructor.name} does not implement escapeJoin().`);
   }
 
   escapeFrom(table) {
-    throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
+    throw new Error(`Driver ${this.constructor.name} does not implement escapeFrom().`);
   }
 
   async runSelectQuery(sql) {

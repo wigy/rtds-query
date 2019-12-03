@@ -126,9 +126,12 @@ class QueryNode {
    * @param {QueryNode} q
    */
   chain(q) {
-    // TODO: Allow insertion into the chain?
     if (this.next) {
-      throw new Error('Already chained.');
+      q.next = this.next;
+      this.next = q;
+      q.prev = this;
+      q.next.prev = q;
+      return;
     }
     this.next = q;
     q.prev = this;
