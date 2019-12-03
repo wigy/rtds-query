@@ -351,5 +351,67 @@ describe('RTDS query', () => {
         }
       ]);
     });
+
+    it('can chain inner joins', async () => {
+      await test([
+        {
+          table: 'todos',
+          select: ['title'],
+          members: [
+            {
+              table: 'projects',
+              as: 'project',
+              select: 'name',
+              join: ['project.id', 'todos.projectId'],
+              members: [
+                {
+                  table: 'users',
+                  as: 'creator',
+                  select: 'name',
+                  join: ['creator.id', 'project.creatorId']
+                }
+              ]
+            }
+          ]
+        }
+      ], [
+        {
+          title: 'Find something',
+          project: {
+            name: 'Busy Project',
+            creator: {
+              name: 'Alice A'
+            }
+          }
+        },
+        {
+          title: 'Cook something',
+          project: {
+            name: 'Busy Project',
+            creator: {
+              name: 'Alice A'
+            }
+          }
+        },
+        {
+          title: 'Run unit-test',
+          project: {
+            name: 'Busy Project',
+            creator: {
+              name: 'Alice A'
+            }
+          }
+        },
+        {
+          title: 'Write unit-test',
+          project: {
+            name: 'Busy Project',
+            creator: {
+              name: 'Alice A'
+            }
+          }
+        }
+      ]);
+    });
   });
 });
