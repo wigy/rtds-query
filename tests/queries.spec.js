@@ -290,4 +290,66 @@ describe('RTDS query', () => {
       ]);
     });
   });
+
+  describe('Mixed joins query', () => {
+    it('can combine left join and inner join', async () => {
+      await test([
+        {
+          table: 'todos',
+          select: ['title'],
+          members: [
+            {
+              table: 'users',
+              as: 'owner',
+              select: 'name',
+              leftJoin: ['owner.id', 'todos.ownerId']
+            },
+            {
+              table: 'users',
+              as: 'creator',
+              select: 'name',
+              join: ['creator.id', 'todos.creatorId']
+            }
+          ]
+        }
+      ], [
+        {
+          title: 'Find something',
+          creator: {
+            name: 'Alice A'
+          },
+          owner: {
+            name: null
+          }
+        },
+        {
+          title: 'Cook something',
+          creator: {
+            name: 'Alice A'
+          },
+          owner: {
+            name: 'Carl C'
+          }
+        },
+        {
+          title: 'Run unit-test',
+          creator: {
+            name: 'Bob B'
+          },
+          owner: {
+            name: 'Bob B'
+          }
+        },
+        {
+          title: 'Write unit-test',
+          creator: {
+            name: 'Bob B'
+          },
+          owner: {
+            name: null
+          }
+        }
+      ]);
+    });
+  });
 });

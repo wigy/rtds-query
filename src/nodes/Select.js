@@ -30,6 +30,9 @@ class Select extends QueryNode {
     if (this.members && this.members.length) {
       this.chain(this.members[0]);
       this.members.forEach(m => this.addChild(m));
+      for (let i = 1; i < this.members.length; i++) {
+        this.members[i - 1].chain(this.members[i]);
+      }
     }
   }
 
@@ -38,7 +41,7 @@ class Select extends QueryNode {
   }
 
   getDumpName() {
-    let ret = this.getFullName();
+    let ret = this.table;
     if (this.as) {
       ret += ` as ${this.as}`;
     }
