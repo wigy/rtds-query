@@ -468,6 +468,36 @@ describe('RTDS query', () => {
   });
 
   describe('Specials', () => {
+    it('handles deeper chains correctly', async() => {
+      const q = new Query({
+        table: 'a',
+        select: 'id',
+        members: [
+          {
+            table: 'b',
+            select: 'id',
+            members: [
+              {
+                table: 'c',
+                select: 'id'
+              }
+            ]
+          },
+          {
+            table: 'd',
+            select: 'id',
+            members: [
+              {
+                table: 'e',
+                select: 'id'
+              }
+            ]
+          }
+        ]
+      });
+      assert.strictEqual(q.root.getChain().length, 5);
+    });
+
     it('support `from` as an alias', async () => {
       await test([
         {

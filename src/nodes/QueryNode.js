@@ -112,6 +112,10 @@ class QueryNode {
     return `SELECT ${select.join(', ')} FROM ${from.join(' ')}`;
   }
 
+  /**
+   * Retrieve all matching entries.
+   * @param {Driver} driver
+   */
   async getAll(driver) {
     const sql = this.getAllSQL(driver);
     return driver.runSelectQuery(sql);
@@ -140,15 +144,12 @@ class QueryNode {
    * @param {QueryNode} q
    */
   chain(q) {
-    if (this.next) {
-      q.next = this.next;
-      this.next = q;
-      q.prev = this;
-      q.next.prev = q;
-      return;
+    let tail = this;
+    while (tail.next) {
+      tail = tail.next;
     }
-    this.next = q;
-    q.prev = this;
+    tail.next = q;
+    q.prev = tail;
   }
 
   /**

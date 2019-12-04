@@ -16,6 +16,10 @@ class Driver {
     return query.getAll(this);
   }
 
+  getAllSQL(query) {
+    return query.getAllSQL(this);
+  }
+
   escapeSelect(table, variable, as = null) {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
   }
