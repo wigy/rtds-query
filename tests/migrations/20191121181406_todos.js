@@ -15,6 +15,7 @@ exports.up = async function(knex, Promise) {
     table.increments('id');
     table.string('comment', 256).notNullable();
     table.integer('userId').unsigned();
+    table.integer('todoId').unsigned();
   });
   await knex.schema.createTable('projects', function (table) {
     table.increments('id');

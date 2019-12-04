@@ -3,9 +3,9 @@ const knex = require('knex'); // TODO: Drop knex once driver supports inserting.
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = false;
+const DEBUG = true;
 // If set, throw assertions.
-const ASSERT = true;
+const ASSERT = false;
 
 describe('RTDS query', () => {
   let db;
@@ -35,6 +35,7 @@ describe('RTDS query', () => {
     await db('users').insert(require('./sample-data/users.json'));
     await db('todos').insert(require('./sample-data/todos.json'));
     await db('projects').insert(require('./sample-data/projects.json'));
+    await db('comments').insert(require('./sample-data/comments.json'));
 
     driver = Driver.create(DATABASE_URL);
   });
@@ -215,9 +216,8 @@ describe('RTDS query', () => {
         }
       ]);
     });
-  });
 
-  it('can rename members when using inner join', async () => {
+    it('can rename members when using inner join', async () => {
     await test([
       {
         table: 'todos',
@@ -257,6 +257,7 @@ describe('RTDS query', () => {
         }
       }
     ]);
+    });
   });
 
   describe('Left join query', () => {
@@ -463,6 +464,25 @@ describe('RTDS query', () => {
           project: { name: 'Busy Project', creator: { name: 'Alice A' } },
           creator: { name: 'Bob B' }
         }
+      ]);
+    });
+  });
+
+  describe('Collections', () => {
+    it.only('can collect members as an array', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['id', 'name'],
+          members: [
+            {
+              table: 'comments',
+              select: ['id', 'comment'],
+              leftJoin: ['comments.userId', 'users.id']
+            }
+          ]
+        }
+      ], [
       ]);
     });
   });
