@@ -1,3 +1,19 @@
+// Helper to do processing.
+const process = (map, obj) => {
+  Object.keys(map).forEach(k => {
+    switch (map[k]) {
+      case 'json':
+        if (typeof obj[k] === 'string') {
+          obj[k] = JSON.parse(obj[k]);
+        }
+        break;
+      default:
+        throw new Error(`No such processing as '${map[k]}'.`);
+    }
+  });
+
+};
+
 // Helper to collect list of entries from line of data based on flat member list.
 const pick = (flat, line) => Object.entries(flat).reduce((prev, cur) => ({...prev, [cur[0]]: line[cur[1]]}), {});
 
@@ -11,19 +27,24 @@ const entry = (line, formula) => {
     });
     Object.assign(ret, value);
   }
+  if (formula.process) {
+    process(formula.process, ret);
+  }
   return ret;
 };
 
 /**
  * A processing formula.
  *
- * A formula can have two fields:
+ * A formula can have the following fields:
  * - `flat` - An object mapping from field names to SQL names.
  * - `objects` - An object mapping sub-object names to sub-formulas.
+ * - `process` - An object mapping post-processing formulas to completed entities.
  */
 class Formula {
   constructor(rules = {}) {
-    Object.assign(this, rules);
+    this.rules = {};
+    Object.assign(this.rules, rules);
   }
 
   /**
@@ -31,10 +52,7 @@ class Formula {
    * (See test files for samples.)
    */
   process(data) {
-    if (!this.objects) {
-      return data;
-    }
-    return data.map(line => entry(line, this));
+    return data.map(line => entry(line, this.rules));
   }
 }
 

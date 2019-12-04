@@ -1,3 +1,4 @@
+const clone = require('clone');
 const QueryNode = require('./QueryNode');
 const Field = require('./Field');
 const Join = require('./Join');
@@ -19,7 +20,8 @@ class Select extends QueryNode {
       as: q.as || undefined,
       select: q.select,
       join: q.join || undefined,
-      members: q.members || []
+      members: q.members || [],
+      process: q.process || undefined
     });
     if (this.join) {
       this.addChild(this.join);
@@ -56,6 +58,9 @@ class Select extends QueryNode {
       this.members.forEach(m => {
         ret.objects[m.getName()] = m.getPostFormula();
       });
+    }
+    if (this.process) {
+      ret.process = clone(this.process);
     }
     return ret;
   }
@@ -96,7 +101,7 @@ class Select extends QueryNode {
     if (q.members && q.members.length) {
       q.members = q.members.map(m => Query.parse(m));
     }
-    return new Select({table: q.table, as: q.as, select, join, members: q.members});
+    return new Select({table: q.table, as: q.as, select, join, members: q.members, process: q.process});
   }
 }
 
