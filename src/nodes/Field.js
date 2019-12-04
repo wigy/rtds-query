@@ -23,8 +23,12 @@ class Field extends QueryNode {
     return this.getFullName().split('.').splice(1).join('.');
   }
 
+  getRef() {
+    return this.parent.ref;
+  }
+
   buildSelectSQL(driver) {
-    return [driver.escapeSelect(this.parent.getName(), this.field, this.getAsName())];
+    return [driver.escapeSelect(this.parent.getName() + this.getRef(), this.field, this.getAsName())];
   }
 
   buildJoinSQL(driver) {

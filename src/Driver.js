@@ -24,7 +24,7 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeJoin().`);
   }
 
-  escapeFrom(table) {
+  escapeFrom(table, as = null) {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeFrom().`);
   }
 

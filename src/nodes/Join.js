@@ -18,6 +18,7 @@ class Join extends QueryNode {
     if (!q.table) {
       throw new Error(`Join table missing in query ${JSON.stringify(q)}`);
     }
+
     super({
       type: q.type,
       table: q.table,
@@ -44,6 +45,10 @@ class Join extends QueryNode {
     return ret;
   }
 
+  getRef() {
+    return this.parent.ref;
+  }
+
   /**
    * Construct a JOIN sentence.
    * @param {Driver} driver
@@ -51,7 +56,9 @@ class Join extends QueryNode {
   buildJoinSQL(driver) {
     let sql = `${this.type.toUpperCase()} JOIN ${driver.escapeJoin(this.table)}`;
     if (this.as) {
-      sql += ` AS ${driver.escapeFrom(this.as)}`;
+      sql += ` AS ${driver.escapeFrom(this.as + this.getRef())}`;
+    } else {
+      sql += ` AS ${driver.escapeFrom(this.table + this.getRef())}`;
     }
     if (this.links.length) {
       sql += ' ON ';

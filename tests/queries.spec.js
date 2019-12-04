@@ -54,7 +54,8 @@ describe('RTDS query', () => {
     if (DEBUG) {
       console.log();
       q.dump();
-      console.log('==', q.getAllSQL(driver) + ';');
+      console.log();
+      console.log(q.getAllSQL(driver) + ';');
     }
     const res = await driver.getAll(q);
     if (DEBUG) {
@@ -414,7 +415,7 @@ describe('RTDS query', () => {
       ]);
     });
 
-    xit('can chain into the same root twice with the same alias', async () => {
+    it('can chain into the same root twice with the same alias', async () => {
       await test({
         table: 'todos',
         select: ['title'],
@@ -437,12 +438,31 @@ describe('RTDS query', () => {
             table: 'users',
             as: 'creator',
             select: 'name',
-            join: ['creator.id', 'project.creatorId']
+            join: ['creator.id', 'todos.creatorId']
           }
         ]
       },
       [
-
+        {
+          title: 'Find something',
+          project: { name: 'Busy Project', creator: { name: 'Alice A' } },
+          creator: { name: 'Alice A' }
+        },
+        {
+          title: 'Cook something',
+          project: { name: 'Busy Project', creator: { name: 'Alice A' } },
+          creator: { name: 'Alice A' }
+        },
+        {
+          title: 'Run unit-test',
+          project: { name: 'Busy Project', creator: { name: 'Alice A' } },
+          creator: { name: 'Bob B' }
+        },
+        {
+          title: 'Write unit-test',
+          project: { name: 'Busy Project', creator: { name: 'Alice A' } },
+          creator: { name: 'Bob B' }
+        }
       ]);
     });
   });

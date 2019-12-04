@@ -10,6 +10,7 @@ class SqliteDriver extends Driver {
     this.db = new sqlite3.Database(url.pathname);
   }
 
+  // TODO: Do we ever use without as?
   escapeSelect(table, variable, as = null) {
     let sql = `\`${table}\`.\`${variable}\``;
     if (as !== null) {
@@ -22,8 +23,9 @@ class SqliteDriver extends Driver {
     return variable === null ? `\`${table}\`` : this.escapeSelect(table, variable);
   }
 
-  escapeFrom(table) {
-    return `\`${table}\``;
+  // TODO: Do we ever use without as?
+  escapeFrom(table, as = null) {
+    return as ? `\`${table}\` AS \`${as}\`` : `\`${table}\``;
   }
 
   async runSelectQuery(sql) {

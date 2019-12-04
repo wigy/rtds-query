@@ -20,12 +20,28 @@ class JoinField extends Field {
     return this.field;
   }
 
+  getRef() {
+    const getParentRef = (obj) => {
+      if (this.table === (obj.as || obj.table)) {
+        return obj.ref;
+      }
+      if (obj.prev) {
+        return getParentRef(obj.prev);
+      }
+      if (!obj.parent) {
+        throw new Error(`Invalid join reference ${this.table}.${this.field}.`);
+      }
+      return getParentRef(obj.parent);
+    };
+    return getParentRef(this.parent.parent);
+  }
+
   buildSelectSQL(driver) {
     return [driver.escapeSelect(this.table, this.field, this.as)];
   }
 
   buildJoinSQL(driver) {
-    return [driver.escapeJoin(this.table, this.field)];
+    return [driver.escapeJoin(this.table + this.getRef(), this.field)];
   }
 
   /**

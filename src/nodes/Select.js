@@ -73,7 +73,7 @@ class Select extends QueryNode {
     if (this.join) {
       ret = [`${this.join.buildJoinSQL(driver)}`];
     } else {
-      ret = [driver.escapeFrom(this.table)];
+      ret = [driver.escapeFrom(this.table, this.table + this.getRef())];
     }
 
     if (this.next) {

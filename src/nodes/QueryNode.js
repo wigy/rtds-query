@@ -21,7 +21,7 @@ class QueryNode {
     if (tab === '') {
       console.log('Chain:', this.getChain().map(c => `#${c.ref}`).join(' -> '));
     }
-    console.log(`${tab}Ref. #${this.ref} ${this.constructor.name} '${this.getDumpName()}'`);
+    console.log(`${tab}Ref. #${this.ref} (as #${this.getRef()}) ${this.constructor.name} '${this.getDumpName()}'`);
     for (const c of this.children) {
       c.dump(tab + '  ');
     }
@@ -46,6 +46,13 @@ class QueryNode {
    */
   getName() {
     throw new Error(`A query node ${this.constructor.name} does not implement getName().`);
+  }
+
+  /**
+   * Get the reference number pointing to the related table.
+   */
+  getRef() {
+    return this.ref;
   }
 
   /**
@@ -85,6 +92,13 @@ class QueryNode {
       ret[k] = this[k];
     });
     return ret;
+  }
+
+  /**
+   * Show JSON as a string.
+   */
+  toString() {
+    return `${this.constructor.name}(${JSON.stringify(this.toJSON())})`;
   }
 
   /**
