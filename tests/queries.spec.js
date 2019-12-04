@@ -474,7 +474,7 @@ describe('RTDS query', () => {
         {
           table: 'users',
           select: ['id', 'name'],
-          members: [
+          collections: [
             {
               table: 'comments',
               select: ['id', 'comment'],

@@ -23,11 +23,11 @@ class Select extends QueryNode {
       members: q.members || [],
       process: q.process || undefined
     });
-    if (this.join) {
-      this.addChild(this.join);
-    }
     for (const field of this.select) {
       this.addChild(field);
+    }
+    if (this.join) {
+      this.addChild(this.join);
     }
     if (this.members && this.members.length) {
       this.chain(this.members[0]);
