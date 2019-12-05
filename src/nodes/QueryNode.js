@@ -8,6 +8,7 @@ class QueryNode {
   constructor(q) {
     this.ref = ++ref;
     Object.assign(this, q);
+    this.root = null;
     this.next = null;
     this.prev = null;
     this.parent = null;
@@ -70,6 +71,14 @@ class QueryNode {
   }
 
   /**
+   * Collect variable resolving mappings as a list from the nearest definition toward the root.
+   * The list is a pairs [`short`, `long`] where `short` is short structural name and `long` is fully qualified name.
+   */
+  scope() {
+    return this.parent ? this.parent.scope() : [];
+  }
+
+  /**
    * Construct a post-processing formula for the query.
    */
   getPostFormula() {
@@ -86,7 +95,7 @@ class QueryNode {
   toJSON() {
     const ret = {};
     Object.keys(this).forEach(k => {
-      if (k === 'next' || k === 'prev' || k === 'children' || k === 'parent') {
+      if (k === 'next' || k === 'prev' || k === 'children' || k === 'parent' || k === 'root') {
         return;
       }
       ret[k] = this[k];
@@ -102,6 +111,17 @@ class QueryNode {
   }
 
   /**
+   * Mark a node as a root for node tree.
+   * @param {QueryNode} root
+   */
+  markRoot(root) {
+    this.root = root;
+    for (const c of this.children) {
+      c.markRoot(root);
+    }
+  }
+
+  /**
    * Construct a SQL for retrieving all matching entries.
    * @param {Driver} driver
    * @returns {String}
@@ -109,7 +129,12 @@ class QueryNode {
   getAllSQL(driver) {
     const select = this.buildSelectSQL(driver);
     const from = this.buildFromSQL(driver);
-    return `SELECT ${select.join(', ')} FROM ${from.join(' ')}`;
+    let sql = `SELECT ${select.join(', ')} FROM ${from.join(' ')}`;
+    const where = this.buildWhereSQL(driver);
+    if (where.length) {
+      sql += ` WHERE (${where.join(') AND (')})`;
+    }
+    return sql;
   }
 
   /**
@@ -137,6 +162,15 @@ class QueryNode {
    */
   buildFromSQL(driver) {
     return this.next ? this.next.buildFromSQL(driver) : [];
+  }
+
+  /**
+   * Construct a list of entries for WHERE part of SQL.
+   * @param {Driver} driver
+   * @returns {String[]}
+   */
+  buildWhereSQL(driver) {
+    return this.next ? this.next.buildWhereSQL(driver) : [];
   }
 
   /**

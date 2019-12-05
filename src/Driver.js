@@ -32,6 +32,10 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeFrom().`);
   }
 
+  escapeWhere(variable) {
+    throw new Error(`Driver ${this.constructor.name} does not implement escapeWhere().`);
+  }
+
   async runSelectQuery(sql) {
     throw new Error(`Driver ${this.constructor.name} does not implement runSelectQuery().`);
   }

@@ -28,6 +28,10 @@ class SqliteDriver extends Driver {
     return as ? `\`${table}\` AS \`${as}\`` : `\`${table}\``;
   }
 
+  escapeWhere(variable) {
+    return '`' + variable.split('.').join('`.`') + '`';
+  }
+
   async runSelectQuery(sql) {
     return new Promise((resolve, reject) => {
       this.db.all(sql, function(err, rows) {

@@ -70,21 +70,35 @@ class Join extends QueryNode {
   }
 
   static parse(q) {
-    if (q.join instanceof Array && q.join.length === 2) {
-      const links = [[
-        JoinField.parse(q.join[0]),
-        JoinField.parse(q.join[1])
-      ]];
-      return new Join({ type: 'inner', links, table: q.table, as: q.as});
-    } else if (q.leftJoin instanceof Array && q.leftJoin.length === 2) {
-      const links = [[
-        JoinField.parse(q.leftJoin[0]),
-        JoinField.parse(q.leftJoin[1])
-      ]];
-      return new Join({ type: 'left', links, table: q.table, as: q.as});
-    } else {
-      return null;
+    if (q.join) {
+      if (typeof q.join === 'string') {
+        const parts = q.join.split('=');
+        if (parts.length === 2) {
+          q.join = [parts[0].trim(), parts[1].trim()];
+        }
+      }
+      if (q.join instanceof Array && q.join.length === 2) {
+        const links = [[
+          JoinField.parse(q.join[0]),
+          JoinField.parse(q.join[1])
+        ]];
+        return new Join({ type: 'inner', links, table: q.table, as: q.as});
+      }
+      throw new Error(`Unable to parse join ${JSON.stringify(q.join)}`);
     }
+
+    if (q.leftJoin) {
+      if (q.leftJoin instanceof Array && q.leftJoin.length === 2) {
+        const links = [[
+          JoinField.parse(q.leftJoin[0]),
+          JoinField.parse(q.leftJoin[1])
+        ]];
+        return new Join({ type: 'left', links, table: q.table, as: q.as});
+      }
+      throw new Error(`Unable to parse left join ${JSON.stringify(q.leftJoin)}.`);
+    }
+
+    return null;
   }
 }
 

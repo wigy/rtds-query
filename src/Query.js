@@ -13,6 +13,7 @@ class Query {
   constructor(q = Object) {
     this.sql = {};
     this.root = Query.parse(q);
+    this.root.markRoot(this.root);
   }
 
   dump() {

@@ -2,6 +2,7 @@ const clone = require('clone');
 const QueryNode = require('./QueryNode');
 const Field = require('./Field');
 const Join = require('./Join');
+const Where = require('./Where');
 
 /**
  * Select query.
@@ -12,6 +13,7 @@ const Join = require('./Join');
  * - `select` a list of members to select
  * - `join` what join type is used to link this to previous table unless first
  * - `members` additional Select nodes to treat as object members of the result lines
+ * - `[where]` array of conditions attached if any
  */
 class Select extends QueryNode {
   constructor(q) {
@@ -21,13 +23,17 @@ class Select extends QueryNode {
       select: q.select,
       join: q.join || undefined,
       members: q.members || [],
-      process: q.process || undefined
+      process: q.process || undefined,
+      where: q.where || undefined
     });
     for (const field of this.select) {
       this.addChild(field);
     }
     if (this.join) {
       this.addChild(this.join);
+    }
+    if (this.where) {
+      this.where.forEach(w => this.addChild(w));
     }
     if (this.members && this.members.length) {
       this.chain(this.members[0]);
@@ -48,6 +54,11 @@ class Select extends QueryNode {
       ret += ` as ${this.as}`;
     }
     return ret;
+  }
+
+  scope() {
+    const map = this.select.map(s => ([s.getName(), s.table + this.ref + '.' + s.field]));
+    return this.parent ? map.concat(this.parent.scope()) : map;
   }
 
   getPostFormula() {
@@ -73,6 +84,14 @@ class Select extends QueryNode {
     return ret;
   }
 
+  buildWhereSQL(driver) {
+    let ret = this.where ? this.where.reduce((prev, cur) => prev.concat(cur.buildWhereSQL(driver)), []) : [];
+    if (this.next) {
+      ret = ret.concat(this.next.buildWhereSQL(driver));
+    }
+    return ret;
+  }
+
   buildFromSQL(driver) {
     let ret;
     if (this.join) {
@@ -80,7 +99,6 @@ class Select extends QueryNode {
     } else {
       ret = [driver.escapeFrom(this.table, this.table + this.getRef())];
     }
-
     if (this.next) {
       ret = ret.concat(this.next.buildFromSQL(driver));
     }
@@ -101,7 +119,21 @@ class Select extends QueryNode {
     if (q.members && q.members.length) {
       q.members = q.members.map(m => Query.parse(m));
     }
-    return new Select({table: q.table, as: q.as, select, join, members: q.members, process: q.process});
+    if (q.where) {
+      if (!(q.where instanceof Array)) {
+        q.where = [q.where];
+      }
+      q.where = q.where.map(w => Where.parse(w));
+    }
+    return new Select({
+      table: q.table,
+      as: q.as, select,
+      join,
+      members:
+      q.members,
+      process: q.process,
+      where: q.where
+    });
   }
 }
 

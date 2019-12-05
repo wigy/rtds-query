@@ -3,9 +3,9 @@ const knex = require('knex'); // TODO: Drop knex once driver supports inserting.
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = true;
+const DEBUG = false;
 // If set, throw assertions.
-const ASSERT = false;
+const ASSERT = true;
 
 describe('RTDS query', () => {
   let db;
@@ -468,8 +468,8 @@ describe('RTDS query', () => {
     });
   });
 
-  describe('Collections', () => {
-    it.only('can collect members as an array', async () => {
+  xdescribe('Collections', () => {
+    it('can collect members as an array', async () => {
       await test([
         {
           table: 'users',
@@ -538,6 +538,33 @@ describe('RTDS query', () => {
         { from: { from: 'Carl C' } },
         { from: { from: 'Bob B' } },
         { from: { from: null } }
+      ]);
+    });
+  });
+
+  describe('Search queries', () => {
+    it('can search flat fields', async () => {
+      await test({
+        table: 'users',
+        select: ['id', 'name', 'age'],
+        where: ['age < 40', 'id > 1']
+      }, [
+        { id: 2, name: 'Bob B', age: 33 }
+      ]);
+    });
+
+    it('can search multiple table fields with aliases and overlapping names', async () => {
+      await test([{
+        table: 'users',
+        select: ['id', 'name', {'age': 'years'}],
+        where: ['years = 21'],
+      },{
+        table: 'comments',
+        select: ['id', 'todoId', 'comment'],
+        join: 'comments.userId = users.id',
+        where: 'id < 3'
+      }], [
+        { id: 1, name: 'Alice A', years: 21, todoId: 1, comment: 'A' }
       ]);
     });
   });
