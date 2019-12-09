@@ -57,7 +57,7 @@ class Select extends QueryNode {
   }
 
   scope() {
-    const map = this.select.map(s => ([s.getName(), s.table + this.ref + '.' + s.field]));
+    const map = this.select.map(s => ([s.getName(), s.table + this.ref + '.' + s.field, s.getFullName()]));
     return this.parent ? map.concat(this.parent.scope()) : map;
   }
 

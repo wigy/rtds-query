@@ -54,11 +54,18 @@ class Driver {
     switch (url.protocol) {
       case 'dummy:':
         return new Driver(url);
+      case 'sql:':
+        return Driver.createSql(url);
       case 'sqlite:':
         return Driver.createSqlite(url);
       default:
         throw new Error(`Driver for ${uri} not yet supported.`);
     }
+  }
+
+  static createSql(uri) {
+    const SqlDriver = require('./drivers/SqlDriver');
+    return new SqlDriver(uri);
   }
 
   static createSqlite(uri) {

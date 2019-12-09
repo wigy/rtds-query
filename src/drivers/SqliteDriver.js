@@ -1,35 +1,13 @@
-const Driver = require('../Driver');
+const SqlDriver = require('./SqlDriver');
 
 /**
  * Implementation for Sqlite.
  */
-class SqliteDriver extends Driver {
+class SqliteDriver extends SqlDriver {
   constructor(url) {
     super(url);
     const sqlite3 = require('sqlite3').verbose();
     this.db = new sqlite3.Database(url.pathname);
-  }
-
-  // TODO: Do we ever use without as?
-  escapeSelect(table, variable, as = null) {
-    let sql = `\`${table}\`.\`${variable}\``;
-    if (as !== null) {
-      sql += ` AS \`${as}\``;
-    }
-    return sql;
-  }
-
-  escapeJoin(table, variable = null) {
-    return variable === null ? `\`${table}\`` : this.escapeSelect(table, variable);
-  }
-
-  // TODO: Do we ever use without as?
-  escapeFrom(table, as = null) {
-    return as ? `\`${table}\` AS \`${as}\`` : `\`${table}\``;
-  }
-
-  escapeWhere(variable) {
-    return '`' + variable.split('.').join('`.`') + '`';
   }
 
   async runSelectQuery(sql) {

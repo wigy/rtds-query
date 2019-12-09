@@ -1,7 +1,7 @@
 const assert = require('assert');
 const { Query, Formula } = require('../src');
 
-describe('Formula', () => {
+describe('Formula class', () => {
   /**
    * Tests.
    */

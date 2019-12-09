@@ -23,12 +23,20 @@ class Query {
   /**
    * Create a cached copy of the SQL for retrieving all.
    * @param {Driver} driver
+   * @param {}
    */
-  getAllSQL(driver) {
-    if (!this.sql.all) {
-      this.sql.all = this.root.getAllSQL(driver);
+  getAllSQL(driver, where = null) {
+    if (where === null) {
+      where = '';
     }
-    return this.sql.all;
+    if (!this.sql[where]) {
+      if (where !== '') {
+        const node = clone(this.root);
+        node.dump();
+      }
+      this.sql[where] = this.root.getAllSQL(driver);
+    }
+    return this.sql[where];
   }
 
   getPostFormula() {
@@ -39,8 +47,8 @@ class Query {
    * Execute a query to retrieve all fields specified in the query.
    * @param {Driver} driver
    */
-  async getAll(driver) {
-    const data = await this.root.getAll(driver);
+  async getAll(driver, where = null) {
+    const data = await this.root.getAll(driver, where);
     return driver.postProcess(data, this.getPostFormula());
   }
 

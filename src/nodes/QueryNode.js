@@ -72,7 +72,8 @@ class QueryNode {
 
   /**
    * Collect variable resolving mappings as a list from the nearest definition toward the root.
-   * The list is a pairs [`short`, `long`] where `short` is short structural name and `long` is fully qualified name.
+   * The list is a pairs [`short`, `table`, `long`] where `short` is short structural name,
+   * `table` is fully qualified name for SQL and `long` is long structural name containing parent names.
    */
   scope() {
     return this.parent ? this.parent.scope() : [];
@@ -193,6 +194,20 @@ class QueryNode {
   addChild(q) {
     q.parent = this;
     this.children.push(q);
+  }
+
+  /**
+   * Append a condition to this query.
+   * @param {String} cond
+   * @return {Boolean}
+   */
+  addWhere(cond) {
+    const r = /\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\b/;
+    console.log(this.scope());
+    console.log(cond.split(r));
+    if (this.next) {
+      this.next.addWhere(cond);
+    }
   }
 }
 
