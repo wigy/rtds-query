@@ -557,7 +557,7 @@ describe('RTDS query', () => {
       await test([{
         table: 'users',
         select: ['id', 'name', {'age': 'years'}],
-        where: ['years = 21'],
+        where: ['years = 21']
       },{
         table: 'comments',
         select: ['id', 'todoId', 'comment'],
