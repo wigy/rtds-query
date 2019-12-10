@@ -94,12 +94,21 @@ class QueryNode {
    * Avoid circulars due to structural fields.
    */
   toJSON() {
-    const ret = {};
+    const ret = {
+      node: this.constructor.name
+    };
     Object.keys(this).forEach(k => {
-      if (k === 'next' || k === 'prev' || k === 'children' || k === 'parent' || k === 'root') {
+      if (k === 'ref' || k === 'next' || k === 'prev' || k === 'children' || k === 'parent' || k === 'root') {
         return;
       }
-      ret[k] = this[k];
+      if (this[k] === undefined) {
+        return;
+      }
+      if (this[k] instanceof Array) {
+        ret[k] = this[k].map(e => (e && e.toJSON) ? e.toJSON() : e);
+      } else {
+        ret[k] = (this[k] && this[k].toJSON) ? this[k].toJSON() : this[k];
+      }
     });
     return ret;
   }
@@ -197,16 +206,20 @@ class QueryNode {
   }
 
   /**
-   * Append a condition to this query.
-   * @param {String} cond
-   * @return {Boolean}
+   * Look for the node which has scope containing all variables.
+   * @param {String[]} vars
+   * @return {QueryNode}
    */
-  addWhere(cond) {
-    const r = /\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\b/;
-    console.log(this.scope());
-    console.log(cond.split(r));
+  findScope(vars) {
+    const scopeVars = new Set(this.scope().map(s => s[2]));
+    if (vars.every(v => scopeVars.has(v))) {
+      return this;
+    }
     if (this.next) {
-      this.next.addWhere(cond);
+      return this.next.findScope(vars);
+    } else {
+      const missing = vars.filter(v => !scopeVars.has(v));
+      throw new Error(`Unable to find node with the variables ${missing.join(', ')}.`);
     }
   }
 }

@@ -3,6 +3,7 @@ const QueryNode = require('./QueryNode');
 const Field = require('./Field');
 const Join = require('./Join');
 const Where = require('./Where');
+const Parser = require('../Parser');
 
 /**
  * Select query.
@@ -103,6 +104,19 @@ class Select extends QueryNode {
       ret = ret.concat(this.next.buildFromSQL(driver));
     }
     return ret;
+  }
+
+  /**
+   * Append additional where condition.
+   * @param {String} cond
+   */
+  addWhere(cond) {
+    if (!this.where) {
+      this.where = [];
+    }
+    const where = Where.parse(cond);
+    this.addChild(where);
+    this.where.push(where);
   }
 
   /**

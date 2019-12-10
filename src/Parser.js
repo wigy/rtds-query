@@ -840,17 +840,17 @@ const SQL_RESERVED_WORDS = new Set(
 );
 
 // Helper to split array of single sql piece to further pieces from valid scope variable.
-const parseReplaceVar = (piece, variable, as) => {
+const parseReplaceVar = (piece, name, as, longName, driver) => {
   if (piece.isVar) {
     return [piece];
   }
   const ret = [];
-  const r = new RegExp('\\b(' + escapeStringRegexp(variable) + ')\\b');
+  const r = new RegExp('\\b(' + escapeStringRegexp(name) + '|' + escapeStringRegexp(longName) + ')\\b');
   let sql = piece.sql.split(r);
   for (let i = 0; i < sql.length; i++) {
     if (r.test(sql[i])) {
       ret.push({
-        sql: as,
+        sql: driver.escapeWhere(as),
         isVar: true
       })
     } else if (sql[i] !== '') {
@@ -864,13 +864,13 @@ const parseReplaceVar = (piece, variable, as) => {
 }
 
 // Helper to replace all scope variables.
-const parseReplace = (scope, pieces) => {
+const parseReplace = (scope, pieces, driver) => {
   let ret = pieces;
   let out;
-  for (const [name, as] of scope) {
+  for (const [name, as, longName] of scope) {
     out = [];
     for (let i = 0; i < ret.length; i++) {
-      out = out.concat(parseReplaceVar(ret[i], name, as));
+      out = out.concat(parseReplaceVar(ret[i], name, as, longName, driver));
     }
     ret = out;
   }
@@ -889,8 +889,8 @@ class Parser {
    * @param {String} sql
    * @param {Array<Stgring, String, String>} scope
    */
-  static substituteScope(scope, sql) {
-    return collectSql(parseReplace(scope, [{isVar: false, sql}]))
+  static substituteScope(scope, sql, driver) {
+    return collectSql(parseReplace(scope, [{isVar: false, sql}], driver))
   }
 
   /**
@@ -906,15 +906,30 @@ class Parser {
    * @param {String} cond
    */
   static vars(cond) {
+    return Parser.parse(cond).filter(p => p.isVar).map(p => p.sql);
+  }
+
+  /**
+   * Split the expression to tokenized pieces `{sql: <str>: isVar: <boolean>}`
+   * @param {String} cond
+   */
+  static parse(cond) {
     const r = /\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)+)\b/;
     const parts = cond.split(r);
-    return parts.filter((s, i) => {
-      if (!r.test(s)) return false;
-      if(Parser.isOperator(s)) return false;
-      if (i && parts[i-1].endsWith('"') && i < parts.length - 1 && parts[i+1].startsWith('"')) return false;
-      if (i && parts[i-1].endsWith("'") && i < parts.length - 1 && parts[i+1].startsWith("'")) return false;
-      return true;
+    const ret = [];
+
+    parts.forEach((s, i) => {
+      if (!r.test(s) ||
+          Parser.isOperator(s) ||
+          (i && parts[i-1].endsWith('"') && i < parts.length - 1 && parts[i+1].startsWith('"')) ||
+          (i && parts[i-1].endsWith("'") && i < parts.length - 1 && parts[i+1].startsWith("'"))) {
+        ret.push({sql: s, isVar: false})
+      } else {
+        ret.push({sql: s, isVar: true})
+      }
     });
+
+    return ret.filter(p => p.sql !== '');
   }
 }
 

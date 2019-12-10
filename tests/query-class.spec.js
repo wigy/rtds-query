@@ -7,7 +7,7 @@ const DEBUG = false;
 // If set, throw assertions.
 const ASSERT = true;
 
-describe('RTDS query', () => {
+describe('Queries', () => {
   let db;
   let driver;
 

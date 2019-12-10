@@ -3,6 +3,7 @@ const Formula = require('./Formula');
 const ContainerNode = require('./nodes/ContainerNode');
 const Select = require('./nodes/Select');
 const Join = require('./nodes/Join');
+const Parser = require('./Parser');
 
 /*********************************************************************************/
 
@@ -10,7 +11,7 @@ const Join = require('./nodes/Join');
  * System independent presentation of the query structure.
  */
 class Query {
-  constructor(q = Object) {
+  constructor(q = {}) {
     this.sql = {};
     this.root = Query.parse(q);
     this.root.markRoot(this.root);
@@ -18,6 +19,10 @@ class Query {
 
   dump() {
     this.root.dump();
+  }
+
+  toJSON() {
+    return this.root.toJSON();
   }
 
   /**
@@ -41,6 +46,20 @@ class Query {
 
   getPostFormula() {
     return new Formula(this.root.getPostFormula());
+  }
+
+  /**
+   * Create new query from this by adding extra condition.
+   * @param {String} cond
+   * @returns {Query}
+   */
+  withWhere(cond) {
+    const copy = clone(this);
+    copy.sql = {};
+    const vars = Parser.vars(cond);
+    const node = copy.root.findScope(vars);
+    node.addWhere(cond);
+    return copy;
   }
 
   /**

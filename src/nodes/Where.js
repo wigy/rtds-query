@@ -21,8 +21,9 @@ class Where extends QueryNode {
   }
 
   buildWhereSQL(driver) {
-    const scope = this.scope().map(([a, b, c]) => [a, b, driver.escapeWhere(c)]);
-    return Parser.substituteScope(scope, this.where);
+    const scope = this.scope();
+    // console.log(scope);
+    return Parser.substituteScope(scope, this.where, driver);
   }
 
   /**

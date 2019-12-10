@@ -31,6 +31,19 @@ class Join extends QueryNode {
     }
   }
 
+  toJSON() {
+    const ret = {
+      node: this.constructor.name,
+      type: this.type,
+      table: this.table,
+      links: this.links.map(l => l.map(e => (e && e.toJSON) ? e.toJSON() : e))
+    }
+    if (this.as) {
+      ret.as = this.as;
+    }
+    return ret;
+  }
+
   getDumpName() {
     let ret = `${this.type} join ${this.table}`;
     if (this.as) {

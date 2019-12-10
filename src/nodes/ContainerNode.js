@@ -27,6 +27,12 @@ class ContainerNode extends QueryNode {
     }
     return ret;
   }
-}
 
+  toJSON() {
+    return {
+      node: this.constructor.name,
+      chidlren: this.children.map(c => c.toJSON())
+    };
+  }
+}
 module.exports = ContainerNode;
