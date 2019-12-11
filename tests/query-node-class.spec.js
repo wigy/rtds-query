@@ -1,17 +1,17 @@
 const assert = require('assert');
 const { Query, Driver } = require('../src');
 
-describe('Query class', () => {
+describe('Query (and QueryNode) class', () => {
 
-  // const driver = Driver.create('sql://');
+  const driver = Driver.create('sql://');
 
   describe('Search queries', () => {
-    it('constructs correctly queries', async () => {
+    it('constructs correctly queries', () => {
       const q = new Query([{
         table: 'users',
-        select: ['id', 'name', {'age': 'years'}],
+        select: ['id', 'name', { age: 'years' }],
         where: ['years = 21']
-      },{
+      }, {
         table: 'comments',
         select: ['id', 'todoId', 'comment'],
         join: 'comments.userId = users.id',
@@ -29,7 +29,7 @@ describe('Query class', () => {
               { node: 'Field', table: 'users', field: 'age', as: 'years' }
             ],
             members: [],
-            where: [ { node: 'Where', where: 'years = 21' } ]
+            where: [{ node: 'Where', where: 'years = 21' }]
           },
           {
             node: 'Select',
@@ -71,13 +71,13 @@ describe('Query class', () => {
               ]
             },
             members: [],
-            where: [ { node: 'Where', where: 'id < 3' } ]
+            where: [{ node: 'Where', where: 'id < 3' }]
           }
         ]
       });
     });
 
-    it('can add conditions', async () => {
+    it('can add conditions', () => {
       const q = new Query({
         table: 'users',
         select: ['id', 'name', 'age'],
@@ -134,6 +134,36 @@ describe('Query class', () => {
                 where: 'users.age > 0 and users.tools.name = "axe"'
               }
             ]
+          }
+        ]
+      });
+    });
+
+    it('get correct SQL with additional conditions', () => {
+      const q = new Query({
+        table: 'users',
+        select: ['id', 'name', 'age'],
+        members: [
+          {
+            table: 'tools',
+            select: ['id', 'name'],
+            join: ['users.id', 'tools.ownerId']
+          }
+        ]
+      });
+      const sql = q.getAllSQL(driver, 'users.id > 1 AND users.tools.id < 1');
+      assert(/SELECT `users\d+`.`id` AS `id`, `users\d+`.`name` AS `name`, `users\d+`.`age` AS `age`, `tools\d+`.`id` AS `tools.id`, `tools\d+`.`name` AS `tools.name` FROM `users` AS `users\d+` INNER JOIN `tools` AS `tools\d+` ON `users\d+`.`id` = `tools\d+`.`ownerId` WHERE \(users.`tools\d+`.`id` > 1 AND `tools\d+`.`id` < 1\)/.test(sql));
+    });
+
+    it.only('can collect tables and PKs', () => {
+      const q = new Query({
+        table: 'users',
+        select: ['id', 'name', 'age'],
+        members: [
+          {
+            table: 'tools',
+            select: ['id', 'name'],
+            join: ['users.id', 'tools.ownerId']
           }
         ]
       });

@@ -36,10 +36,11 @@ class Query {
     }
     if (!this.sql[where]) {
       if (where !== '') {
-        const node = clone(this.root);
-        node.dump();
+        const q = this.withWhere(where);
+        this.sql[where] = q.getAllSQL(driver);
+      } else {
+        this.sql[where] = this.root.getAllSQL(driver);
       }
-      this.sql[where] = this.root.getAllSQL(driver);
     }
     return this.sql[where];
   }
