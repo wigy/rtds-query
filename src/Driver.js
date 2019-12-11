@@ -12,16 +12,6 @@ class Driver {
     this.db = null;
   }
 
-  async getAll(query, cond = null) {
-    // TODO: Duplicate entry point.
-    return query.getAll(this, cond);
-  }
-
-  getAllSQL(query, cond = null) {
-    // TODO: Duplicate entry point.
-    return query.getAllSQL(this, cond);
-  }
-
   escapeSelect(table, variable, as = null) {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
   }
