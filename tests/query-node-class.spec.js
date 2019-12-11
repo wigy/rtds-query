@@ -159,21 +159,14 @@ describe('Query (and QueryNode) class', () => {
       assert(/SELECT `users\d+`.`id` AS `id`, `users\d+`.`name` AS `name`, `users\d+`.`age` AS `age`, `tools\d+`.`id` AS `tools.id`, `tools\d+`.`name` AS `tools.name` FROM `users` AS `users\d+` INNER JOIN `tools` AS `tools\d+` ON `users\d+`.`id` = `tools\d+`.`ownerId` WHERE \(users.`tools\d+`.`id` > 1 AND `tools\d+`.`id` < 1\)/.test(sql));
     });
 
-    xit('can collect tables and PKs', () => {
+    it('find PKs with conditions', () => {
       const q = new Query({
         table: 'users',
-        pk: ['name', 'zip'],
-        select: ['name', 'email_and_phone'],
-        members: [
-          {
-            table: 'tools',
-            select: ['type'],
-            join: ['users.id', 'tools.ownerId']
-          }
-        ]
+        select: ['id', 'name', 'age']
       });
-      q.dump();
-      console.log(q.selectPKs().dump().getAllSQL(driver));
+      const qpk = q.selectPKs();
+      const sql = qpk.getAllSQL(driver, 'users.age < 40 AND users.id > 1');
+      assert(/SELECT `users\d+`.`id` AS `id`, `users\d+`.`name` AS `name`, `users\d+`.`age` AS `age`, `users\d+`.`id` AS `PK\[users\[0\]\]` FROM `users` AS `users\d+` WHERE \(`users\d+`.`age` < 40 AND `users\d+`.`id` > 1\)/.test(sql));
     });
   });
 });

@@ -9,8 +9,9 @@ const SQL_OPERATORS = new Set(
   'IN',
   'LIKE',
   'NOT',
-  'OR',
+  'OR'
 );
+/*
 const SQL_RESERVED_WORDS = new Set(
   'A',
   'ABORT',
@@ -838,6 +839,7 @@ const SQL_RESERVED_WORDS = new Set(
   'ZEROFILL',
   'ZONE'
 );
+*/
 
 // Helper to split array of single sql piece to further pieces from valid scope variable.
 const parseReplaceVar = (piece, name, as, longName, driver) => {
@@ -846,13 +848,13 @@ const parseReplaceVar = (piece, name, as, longName, driver) => {
   }
   const ret = [];
   const r = new RegExp('\\b(' + escapeStringRegexp(name) + '|' + escapeStringRegexp(longName) + ')\\b');
-  let sql = piece.sql.split(r);
+  const sql = piece.sql.split(r);
   for (let i = 0; i < sql.length; i++) {
     if (r.test(sql[i])) {
       ret.push({
         sql: driver.escapeWhere(as),
         isVar: true
-      })
+      });
     } else if (sql[i] !== '') {
       ret.push({
         sql: sql[i],
@@ -861,7 +863,7 @@ const parseReplaceVar = (piece, name, as, longName, driver) => {
     }
   }
   return ret;
-}
+};
 
 // Helper to replace all scope variables.
 const parseReplace = (scope, pieces, driver) => {
@@ -890,7 +892,7 @@ class Parser {
    * @param {Array<Stgring, String, String>} scope
    */
   static substituteScope(scope, sql, driver) {
-    return collectSql(parseReplace(scope, [{isVar: false, sql}], driver))
+    return collectSql(parseReplace(scope, [{isVar: false, sql}], driver));
   }
 
   /**
@@ -921,11 +923,11 @@ class Parser {
     parts.forEach((s, i) => {
       if (!r.test(s) ||
           Parser.isOperator(s) ||
-          (i && parts[i-1].endsWith('"') && i < parts.length - 1 && parts[i+1].startsWith('"')) ||
-          (i && parts[i-1].endsWith("'") && i < parts.length - 1 && parts[i+1].startsWith("'"))) {
-        ret.push({sql: s, isVar: false})
+          (i && parts[i - 1].endsWith('"') && i < parts.length - 1 && parts[i + 1].startsWith('"')) ||
+          (i && parts[i - 1].endsWith("'") && i < parts.length - 1 && parts[i + 1].startsWith("'"))) {
+        ret.push({sql: s, isVar: false});
       } else {
-        ret.push({sql: s, isVar: true})
+        ret.push({sql: s, isVar: true});
       }
     });
 

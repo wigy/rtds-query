@@ -55,16 +55,12 @@ class Query {
 
     const changeNode = (node) => {
       if (node instanceof Select) {
-        node.select.forEach(s => node.removeChild(s));
-        const process = {};
         const selects = node.pk.map((s, i) => {
           const key = `PK[${node.table}[${i}]]`;
-          process[key] = 'collectPKs'
           return Field.parse({[s]: key}, node.table);
         });
         selects.forEach(s => node.addChild(s));
-        node.select = selects;
-        node.process = process;
+        node.select = node.select.concat(selects);
       }
       if (node.children) {
         for (const c of node.children) {
@@ -76,6 +72,57 @@ class Query {
     changeNode(copy.root);
 
     return copy;
+  }
+
+  /**
+   * Collect all PKs from all tables involved.
+   * @param {Driver} driver
+   * @param {String} cond
+   */
+  async getAllPKs(driver, cond = null) {
+    // TODO: We should have mechanism to drop other than PK fields from SELECT.
+    // Now they are retrieved unnecessarily.
+    const regex = /(.*)PK\[(\w+)\[(\d+)\]\]$/;
+    const data = await this.getAll(driver, cond, {noPostProcessing: true});
+    let keys = data.length ? Object.keys(data[0]).filter(k => regex.test(k)) : [];
+    keys = keys.map(k => [...regex.exec(k), k]);
+    const ret = {};
+
+    // Reorganize all primary keys.
+    for (let i = 0; i < data.length; i++) {
+      const obj = {};
+      for (let [, prefix, table, index, k] of keys) {
+        const name = `${prefix}/${table}`;
+        if (!obj[name]) {
+          obj[name] = [];
+        }
+        index = parseInt(index);
+        while (obj[name].length <= index) {
+          obj[name].push(null);
+        }
+        obj[name][index] = data[i][k];
+      }
+
+      // Trim down singletons and collect PKs by table.
+      Object.entries(obj).forEach(([name, pks]) => {
+        const [, table] = name.split('/');
+        if (!ret[table]) {
+          ret[table] = [];
+        }
+        if (pks && pks.length === 1) {
+          ret[table].push(pks[0]);
+        } else {
+          ret[table].push(pks);
+        }
+      });
+    }
+
+    // Reduce them to sets.
+    Object.keys(ret).forEach(table => {
+      ret[table] = new Set(ret[table]);
+    });
+
+    return ret;
   }
 
   /**
@@ -102,9 +149,12 @@ class Query {
    * Execute a query to retrieve all fields specified in the query.
    * @param {Driver} driver
    */
-  async getAll(driver, where = null) {
+  async getAll(driver, where = null, {noPostProcessing = false} = {}) {
     const sql = this.getAllSQL(driver, where);
     const data = await driver.runSelectQuery(sql);
+    if (noPostProcessing) {
+      return data;
+    }
     return driver.postProcess(data, this.getPostFormula());
   }
 

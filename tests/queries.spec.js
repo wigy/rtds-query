@@ -50,7 +50,7 @@ describe('Queries', () => {
   /**
    * Test executor function.
    */
-  const test = async (query, result, cond = null) => {
+  const test = async (query, result, cond = null, pks = null) => {
     const q = new Query(query);
     if (DEBUG) {
       console.log();
@@ -66,11 +66,18 @@ describe('Queries', () => {
     if (ASSERT) {
       assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} converted to ${q.getAllSQL(driver, cond)} failed.`);
     }
-    /*
-    const qpk = q.selectPKs();
-    const resPk = await qpk.getAll(driver, cond);
-    console.log(resPk);
-    */
+    if (pks) {
+      const qpk = q.selectPKs();
+      const resPk = await qpk.getAllPKs(driver, cond);
+      if (DEBUG) {
+        console.log(qpk.getAllSQL(driver, cond) + ';');
+        console.log('=> (PKS)');
+        console.dir(resPk, {depth: null});
+      }
+      if (ASSERT) {
+        assert.deepStrictEqual(resPk, pks, `Query ${JSON.stringify(query)} did not produce correct PKs.`);
+      }
+    }
   };
 
   /**
@@ -80,13 +87,14 @@ describe('Queries', () => {
     it('can get named fields', async () => {
       await test({
         table: 'users',
-        pk: ['id', 'name'],
         select: ['id', 'name', 'age']
       }, [
         { id: 1, name: 'Alice A', age: 21 },
         { id: 2, name: 'Bob B', age: 33 },
         { id: 3, name: 'Carl C', age: 44 }
-      ]);
+      ],
+      null,
+      { users: new Set([1, 2, 3]) });
     });
 
     it('can get only some fields', async () => {
@@ -97,7 +105,9 @@ describe('Queries', () => {
         { id: 1, age: 21 },
         { id: 2, age: 33 },
         { id: 3, age: 44 }
-      ]);
+      ],
+      null,
+      { users: new Set([1, 2, 3]) });
     });
 
     it('can rename fields', async () => {
@@ -108,7 +118,9 @@ describe('Queries', () => {
         { id: 1, years: 21 },
         { id: 2, years: 33 },
         { id: 3, years: 44 }
-      ]);
+      ],
+      null,
+      { users: new Set([1, 2, 3]) });
     });
   });
 
@@ -148,7 +160,9 @@ describe('Queries', () => {
           age: 44,
           name: 'Empty Project'
         }
-      ]);
+      ],
+      null,
+      { users: new Set([1, 2, 3]), projects: new Set([1, 2])});
     });
   });
 
@@ -181,7 +195,9 @@ describe('Queries', () => {
           name: 'Bob B',
           title: 'Write unit-test'
         }
-      ]);
+      ],
+      null,
+      { users: new Set([1, 2]), todos: new Set([1, 2, 3, 4]) });
     });
 
     it('can add members with inner join', async () => {
@@ -222,7 +238,9 @@ describe('Queries', () => {
             creator: 'Bob B'
           }
         }
-      ]);
+      ],
+      null,
+      { users: new Set([1, 2]), todos: new Set([1, 2, 3, 4]) });
     });
 
     it('can rename members when using inner join', async () => {
@@ -264,7 +282,9 @@ describe('Queries', () => {
             name: 'Bob B'
           }
         }
-      ]);
+      ],
+      null,
+      { users: new Set([1, 2]), todos: new Set([1, 2, 3, 4]) });
     });
   });
 
@@ -297,7 +317,9 @@ describe('Queries', () => {
           owner: null,
           title: 'Write unit-test'
         }
-      ]);
+      ],
+      null,
+      { todos: new Set([1, 2, 3, 4]), users: new Set([null, 3, 2]) });
     });
   });
 
@@ -359,7 +381,9 @@ describe('Queries', () => {
             name: null
           }
         }
-      ]);
+      ],
+      null,
+      { todos: new Set([1, 2, 3, 4]), users: new Set([null, 1, 3, 2]) });
     });
 
     it('can chain inner joins', async () => {
@@ -421,7 +445,9 @@ describe('Queries', () => {
             }
           }
         }
-      ]);
+      ],
+      null,
+      { todos: new Set([1, 2, 3, 4]), projects: new Set([1]), users: new Set([1]) });
     });
 
     it('can chain into the same root twice with the same alias', async () => {
@@ -472,7 +498,9 @@ describe('Queries', () => {
           project: { name: 'Busy Project', creator: { name: 'Alice A' } },
           creator: { name: 'Bob B' }
         }
-      ]);
+      ],
+      null,
+      { todos: new Set([1, 2, 3, 4]), projects: new Set([1]), users: new Set([1, 2]) });
     });
   });
 
@@ -526,11 +554,11 @@ describe('Queries', () => {
       assert.strictEqual(q.root.getChain().length, 5);
     });
 
-    it('support `from` as an alias', async () => {
+    it('support `from` ans `as` as an alias', async () => {
       await test([
         {
           table: 'todos',
-          select: {title: 'from'},
+          select: {title: 'as'},
           members: [
             {
               table: 'users',
@@ -542,11 +570,13 @@ describe('Queries', () => {
         }
       ],
       [
-        { from: { from: null } },
-        { from: { from: 'Carl C' } },
-        { from: { from: 'Bob B' } },
-        { from: { from: null } }
-      ]);
+        { as: 'Find something', from: { from: null } },
+        { as: 'Cook something', from: { from: 'Carl C' } },
+        { as: 'Run unit-test', from: { from: 'Bob B' } },
+        { as: 'Write unit-test', from: { from: null } }
+      ],
+      null,
+      { todos: new Set([1, 2, 3, 4]), users: new Set([null, 3, 2])});
     });
   });
 
@@ -558,7 +588,9 @@ describe('Queries', () => {
         where: ['age < 40', 'id > 1']
       }, [
         { id: 2, name: 'Bob B', age: 33 }
-      ]);
+      ],
+      null,
+      { users: new Set([2])});
     });
 
     it('can use additional conditions', async () => {
@@ -567,7 +599,9 @@ describe('Queries', () => {
         select: ['id', 'name', 'age']
       }, [
         { id: 2, name: 'Bob B', age: 33 }
-      ], 'users.age < 40 AND users.id > 1');
+      ],
+      'users.age < 40 AND users.id > 1',
+      { users: new Set([2])});
     });
 
     it('can search multiple table fields with aliases and overlapping names', async () => {
@@ -582,7 +616,9 @@ describe('Queries', () => {
         where: 'id < 3'
       }], [
         { id: 1, name: 'Alice A', years: 21, todoId: 1, comment: 'A' }
-      ]);
+      ],
+      null,
+      { comments: new Set([1]), users: new Set([1])});
     });
   });
 });
