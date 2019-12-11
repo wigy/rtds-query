@@ -23,6 +23,7 @@ describe('Query (and QueryNode) class', () => {
           {
             node: 'Select',
             table: 'users',
+            pk: ['id'],
             select: [
               { node: 'Field', table: 'users', field: 'id', as: 'id' },
               { node: 'Field', table: 'users', field: 'name', as: 'name' },
@@ -34,6 +35,7 @@ describe('Query (and QueryNode) class', () => {
           {
             node: 'Select',
             table: 'comments',
+            pk: ['id'],
             select: [
               { node: 'Field', table: 'comments', field: 'id', as: 'id' },
               {
@@ -93,6 +95,7 @@ describe('Query (and QueryNode) class', () => {
       assert.deepStrictEqual(wq.toJSON(), {
         node: 'Select',
         table: 'users',
+        pk: ['id'],
         select: [
           { node: 'Field', table: 'users', field: 'id', as: 'id' },
           { node: 'Field', table: 'users', field: 'name', as: 'name' },
@@ -102,6 +105,7 @@ describe('Query (and QueryNode) class', () => {
           {
             node: 'Select',
             table: 'tools',
+            pk: ['id'],
             select: [
               { node: 'Field', table: 'tools', field: 'id', as: 'id' },
               { node: 'Field', table: 'tools', field: 'name', as: 'name' }
@@ -155,18 +159,21 @@ describe('Query (and QueryNode) class', () => {
       assert(/SELECT `users\d+`.`id` AS `id`, `users\d+`.`name` AS `name`, `users\d+`.`age` AS `age`, `tools\d+`.`id` AS `tools.id`, `tools\d+`.`name` AS `tools.name` FROM `users` AS `users\d+` INNER JOIN `tools` AS `tools\d+` ON `users\d+`.`id` = `tools\d+`.`ownerId` WHERE \(users.`tools\d+`.`id` > 1 AND `tools\d+`.`id` < 1\)/.test(sql));
     });
 
-    it.only('can collect tables and PKs', () => {
+    xit('can collect tables and PKs', () => {
       const q = new Query({
         table: 'users',
-        select: ['id', 'name', 'age'],
+        pk: ['name', 'zip'],
+        select: ['name', 'email_and_phone'],
         members: [
           {
             table: 'tools',
-            select: ['id', 'name'],
+            select: ['type'],
             join: ['users.id', 'tools.ownerId']
           }
         ]
       });
+      q.dump();
+      console.log(q.selectPKs().dump().getAllSQL(driver));
     });
   });
 });

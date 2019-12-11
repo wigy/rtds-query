@@ -7,6 +7,23 @@ const process = (map, obj) => {
           obj[k] = JSON.parse(obj[k]);
         }
         break;
+      case 'collectPKs':
+        Object.entries(obj).map(([k, v]) => {
+          const r = /PK\[(\w+)\[(\d+)\]\]/.exec(k);
+          if (r) {
+            delete obj[k];
+            let [, table, index] = r;
+            if (!obj[table]) {
+              obj[table] = [];
+            }
+            index = parseInt(index);
+            if (obj[table].length <= index) {
+              obj[table].push(null);
+            }
+            obj[table][index] = v;
+          }
+        });
+        break;
       default:
         throw new Error(`No such processing as '${map[k]}'.`);
     }

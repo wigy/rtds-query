@@ -22,7 +22,7 @@ class QueryNode {
     if (tab === '') {
       console.log('Chain:', this.getChain().map(c => `#${c.ref}`).join(' -> '));
     }
-    console.log(`${tab}Ref. #${this.ref} (as #${this.getRef()}) ${this.constructor.name} '${this.getDumpName()}'`);
+    console.log(`${tab}Ref. #${this.ref} (of #${this.getRef()}) ${this.constructor.name} '${this.getDumpName()}'`);
     for (const c of this.children) {
       c.dump(tab + '  ');
     }
@@ -152,6 +152,7 @@ class QueryNode {
    * @param {Driver} driver
    */
   async getAll(driver) {
+    // TODO: Remove this interface?
     const sql = this.getAllSQL(driver);
     return driver.runSelectQuery(sql);
   }
@@ -197,12 +198,21 @@ class QueryNode {
   }
 
   /**
-   * Make structural relationship to the other query.
+   * Make structural relationship to the other query node.
    * @param {QueryNode} q
    */
   addChild(q) {
     q.parent = this;
     this.children.push(q);
+  }
+
+  /**
+   * Remove structural relations ship to other query node.
+   * @param {QueryNode} q
+   */
+  removeChild(q) {
+    q.parent = null;
+    this.children = this.children.filter(c => c.ref !== q.ref);
   }
 
   /**

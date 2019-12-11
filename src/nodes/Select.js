@@ -3,7 +3,6 @@ const QueryNode = require('./QueryNode');
 const Field = require('./Field');
 const Join = require('./Join');
 const Where = require('./Where');
-const Parser = require('../Parser');
 
 /**
  * Select query.
@@ -11,6 +10,7 @@ const Parser = require('../Parser');
  * Parameters:
  * - `table` name of the table
  * - `[as]` alias to be used when this is as a member (defaults to `table`)
+ * - `[pk]` a list of primary keys (defaults to `['id']`)
  * - `select` a list of members to select
  * - `join` what join type is used to link this to previous table unless first
  * - `members` additional Select nodes to treat as object members of the result lines
@@ -21,6 +21,7 @@ class Select extends QueryNode {
     super({
       table: q.table,
       as: q.as || undefined,
+      pk: q.pk || ['id'],
       select: q.select,
       join: q.join || undefined,
       members: q.members || [],
@@ -53,6 +54,9 @@ class Select extends QueryNode {
     let ret = this.table;
     if (this.as) {
       ret += ` as ${this.as}`;
+    }
+    if (this.pk.length !== 1 || this.pk[0] !== 'id') {
+      ret += ` (PK: ${this.pk.join(' + ')})`;
     }
     return ret;
   }
@@ -139,9 +143,16 @@ class Select extends QueryNode {
       }
       q.where = q.where.map(w => Where.parse(w));
     }
+    if (q.pk) {
+      if (typeof q.pk === 'string') {
+        q.pk = [q.pk];
+      }
+    }
     return new Select({
       table: q.table,
-      as: q.as, select,
+      as: q.as,
+      pk: q.pk,
+      select,
       join,
       members:
       q.members,

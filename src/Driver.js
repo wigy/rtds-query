@@ -12,12 +12,14 @@ class Driver {
     this.db = null;
   }
 
-  async getAll(query) {
-    return query.getAll(this);
+  async getAll(query, cond = null) {
+    // TODO: Duplicate entry point.
+    return query.getAll(this, cond);
   }
 
-  getAllSQL(query) {
-    return query.getAllSQL(this);
+  getAllSQL(query, cond = null) {
+    // TODO: Duplicate entry point.
+    return query.getAllSQL(this, cond);
   }
 
   escapeSelect(table, variable, as = null) {

@@ -3,6 +3,7 @@ const Formula = require('./Formula');
 const ContainerNode = require('./nodes/ContainerNode');
 const Select = require('./nodes/Select');
 const Join = require('./nodes/Join');
+const Field = require('./nodes/Field');
 const Parser = require('./Parser');
 
 /*********************************************************************************/
@@ -19,10 +20,62 @@ class Query {
 
   dump() {
     this.root.dump();
+    return this;
   }
 
   toJSON() {
     return this.root.toJSON();
+  }
+
+  getPostFormula() {
+    return new Formula(this.root.getPostFormula());
+  }
+
+  /**
+   * Create new query from this by adding extra condition.
+   * @param {String} cond
+   * @returns {Query}
+   */
+  withWhere(cond) {
+    const copy = clone(this);
+    copy.sql = {};
+    const vars = Parser.vars(cond);
+    const node = copy.root.findScope(vars);
+    node.addWhere(cond);
+    return copy;
+  }
+
+  /**
+   * Create new query that selects table primary keys.
+   * @returns {Query}
+   */
+  selectPKs() {
+    const copy = clone(this);
+    copy.sql = {};
+
+    const changeNode = (node) => {
+      if (node instanceof Select) {
+        node.select.forEach(s => node.removeChild(s));
+        const process = {};
+        const selects = node.pk.map((s, i) => {
+          const key = `PK[${node.table}[${i}]]`;
+          process[key] = 'collectPKs'
+          return Field.parse({[s]: key}, node.table);
+        });
+        selects.forEach(s => node.addChild(s));
+        node.select = selects;
+        node.process = process;
+      }
+      if (node.children) {
+        for (const c of node.children) {
+          changeNode(c);
+        }
+      }
+    };
+
+    changeNode(copy.root);
+
+    return copy;
   }
 
   /**
@@ -45,30 +98,13 @@ class Query {
     return this.sql[where];
   }
 
-  getPostFormula() {
-    return new Formula(this.root.getPostFormula());
-  }
-
-  /**
-   * Create new query from this by adding extra condition.
-   * @param {String} cond
-   * @returns {Query}
-   */
-  withWhere(cond) {
-    const copy = clone(this);
-    copy.sql = {};
-    const vars = Parser.vars(cond);
-    const node = copy.root.findScope(vars);
-    node.addWhere(cond);
-    return copy;
-  }
-
   /**
    * Execute a query to retrieve all fields specified in the query.
    * @param {Driver} driver
    */
   async getAll(driver, where = null) {
-    const data = await this.root.getAll(driver, where);
+    const sql = this.getAllSQL(driver, where);
+    const data = await driver.runSelectQuery(sql);
     return driver.postProcess(data, this.getPostFormula());
   }
 

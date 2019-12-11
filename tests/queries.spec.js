@@ -50,22 +50,27 @@ describe('Queries', () => {
   /**
    * Test executor function.
    */
-  const test = async (query, result) => {
+  const test = async (query, result, cond = null) => {
     const q = new Query(query);
     if (DEBUG) {
       console.log();
       q.dump();
       console.log();
-      console.log(q.getAllSQL(driver) + ';');
+      console.log(q.getAllSQL(driver, cond) + ';');
     }
-    const res = await driver.getAll(q);
+    const res = await q.getAll(driver, cond);
     if (DEBUG) {
       console.log('=>');
       console.dir(res, {depth: null});
     }
     if (ASSERT) {
-      assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} converted to ${q.getAllSQL(driver)} failed.`);
+      assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} converted to ${q.getAllSQL(driver, cond)} failed.`);
     }
+    /*
+    const qpk = q.selectPKs();
+    const resPk = await qpk.getAll(driver, cond);
+    console.log(resPk);
+    */
   };
 
   /**
@@ -75,6 +80,7 @@ describe('Queries', () => {
     it('can get named fields', async () => {
       await test({
         table: 'users',
+        pk: ['id', 'name'],
         select: ['id', 'name', 'age']
       }, [
         { id: 1, name: 'Alice A', age: 21 },
@@ -82,6 +88,7 @@ describe('Queries', () => {
         { id: 3, name: 'Carl C', age: 44 }
       ]);
     });
+
     it('can get only some fields', async () => {
       await test({
         table: 'users',
@@ -92,6 +99,7 @@ describe('Queries', () => {
         { id: 3, age: 44 }
       ]);
     });
+
     it('can rename fields', async () => {
       await test({
         table: 'users',
@@ -218,45 +226,45 @@ describe('Queries', () => {
     });
 
     it('can rename members when using inner join', async () => {
-    await test([
-      {
-        table: 'todos',
-        select: 'title',
-        members: [
-          {
-            table: 'users',
-            as: 'creator',
-            select: 'name',
-            join: ['creator.id', 'todos.creatorId']
+      await test([
+        {
+          table: 'todos',
+          select: 'title',
+          members: [
+            {
+              table: 'users',
+              as: 'creator',
+              select: 'name',
+              join: ['creator.id', 'todos.creatorId']
+            }
+          ]
+        }
+      ], [
+        {
+          title: 'Find something',
+          creator: {
+            name: 'Alice A'
           }
-        ]
-      }
-    ], [
-      {
-        title: 'Find something',
-        creator: {
-          name: 'Alice A'
+        },
+        {
+          title: 'Cook something',
+          creator: {
+            name: 'Alice A'
+          }
+        },
+        {
+          title: 'Run unit-test',
+          creator: {
+            name: 'Bob B'
+          }
+        },
+        {
+          title: 'Write unit-test',
+          creator: {
+            name: 'Bob B'
+          }
         }
-      },
-      {
-        title: 'Cook something',
-        creator: {
-          name: 'Alice A'
-        }
-      },
-      {
-        title: 'Run unit-test',
-        creator: {
-          name: 'Bob B'
-        }
-      },
-      {
-        title: 'Write unit-test',
-        creator: {
-          name: 'Bob B'
-        }
-      }
-    ]);
+      ]);
     });
   });
 
@@ -553,12 +561,21 @@ describe('Queries', () => {
       ]);
     });
 
+    it('can use additional conditions', async () => {
+      await test({
+        table: 'users',
+        select: ['id', 'name', 'age']
+      }, [
+        { id: 2, name: 'Bob B', age: 33 }
+      ], 'users.age < 40 AND users.id > 1');
+    });
+
     it('can search multiple table fields with aliases and overlapping names', async () => {
       await test([{
         table: 'users',
-        select: ['id', 'name', {'age': 'years'}],
+        select: ['id', 'name', { age: 'years' }],
         where: ['years = 21']
-      },{
+      }, {
         table: 'comments',
         select: ['id', 'todoId', 'comment'],
         join: 'comments.userId = users.id',
