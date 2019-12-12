@@ -4,7 +4,6 @@ const Driver = require('../Driver');
  * Base class for standard SQL driver.
  */
 class SqlDriver extends Driver {
-  // TODO: Do we ever use without as?
   escapeSelect(table, variable, as = null) {
     let sql = `\`${table}\`.\`${variable}\``;
     if (as !== null) {
@@ -17,7 +16,6 @@ class SqlDriver extends Driver {
     return variable === null ? `\`${table}\`` : this.escapeSelect(table, variable);
   }
 
-  // TODO: Do we ever use without as?
   escapeFrom(table, as = null) {
     return as ? `\`${table}\` AS \`${as}\`` : `\`${table}\``;
   }

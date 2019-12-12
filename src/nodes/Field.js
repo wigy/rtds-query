@@ -27,7 +27,7 @@ class Field extends QueryNode {
     return this.parent.ref;
   }
 
-  buildSelectSQL(driver) {
+  buildSelectSQL(driver, {pkOnly = false} = {}) {
     return [driver.escapeSelect(this.parent.getName() + this.getRef(), this.field, this.getAsName())];
   }
 

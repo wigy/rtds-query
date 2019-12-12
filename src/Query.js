@@ -12,6 +12,9 @@ const Parser = require('./Parser');
  * System independent presentation of the query structure.
  */
 class Query {
+
+  static get PK_REGEX() { return /(.*)PK\[(\w+)\[(\d+)\]\]$/; }
+
   constructor(q = {}) {
     this.sql = {};
     this.root = Query.parse(q);
@@ -80,12 +83,10 @@ class Query {
    * @param {String} cond
    */
   async getAllPKs(driver, cond = null) {
-    // TODO: We should have mechanism to drop other than PK fields from SELECT.
     // Now they are retrieved unnecessarily.
-    const regex = /(.*)PK\[(\w+)\[(\d+)\]\]$/;
-    const data = await this.getAll(driver, cond, {noPostProcessing: true});
-    let keys = data.length ? Object.keys(data[0]).filter(k => regex.test(k)) : [];
-    keys = keys.map(k => [...regex.exec(k), k]);
+    const data = await this.getAll(driver, cond, {noPostProcessing: true, pkOnly: true});
+    let keys = data.length ? Object.keys(data[0]).filter(k => Query.PK_REGEX.test(k)) : [];
+    keys = keys.map(k => [...Query.PK_REGEX.exec(k), k]);
     const ret = {};
 
     // Reorganize all primary keys.
@@ -130,16 +131,16 @@ class Query {
    * @param {Driver} driver
    * @param {}
    */
-  getAllSQL(driver, where = null) {
+  getAllSQL(driver, where = null, {pkOnly = false} = {}) {
     if (where === null) {
       where = '';
     }
     if (!this.sql[where]) {
       if (where !== '') {
         const q = this.withWhere(where);
-        this.sql[where] = q.getAllSQL(driver);
+        this.sql[where] = q.getAllSQL(driver, null, {pkOnly});
       } else {
-        this.sql[where] = this.root.getAllSQL(driver);
+        this.sql[where] = this.root.getAllSQL(driver, {pkOnly});
       }
     }
     return this.sql[where];
@@ -149,8 +150,8 @@ class Query {
    * Execute a query to retrieve all fields specified in the query.
    * @param {Driver} driver
    */
-  async getAll(driver, where = null, {noPostProcessing = false} = {}) {
-    const sql = this.getAllSQL(driver, where);
+  async getAll(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
+    const sql = this.getAllSQL(driver, where, {pkOnly});
     const data = await driver.runSelectQuery(sql);
     if (noPostProcessing) {
       return data;

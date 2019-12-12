@@ -136,8 +136,8 @@ class QueryNode {
    * @param {Driver} driver
    * @returns {String}
    */
-  getAllSQL(driver) {
-    const select = this.buildSelectSQL(driver);
+  getAllSQL(driver, {pkOnly = false} = {}) {
+    const select = this.buildSelectSQL(driver, {pkOnly});
     const from = this.buildFromSQL(driver);
     let sql = `SELECT ${select.join(', ')} FROM ${from.join(' ')}`;
     const where = this.buildWhereSQL(driver);
@@ -152,7 +152,6 @@ class QueryNode {
    * @param {Driver} driver
    */
   async getAll(driver) {
-    // TODO: Remove this interface?
     const sql = this.getAllSQL(driver);
     return driver.runSelectQuery(sql);
   }
@@ -162,8 +161,8 @@ class QueryNode {
    * @param {Driver} driver
    * @returns {String[]}
    */
-  buildSelectSQL(driver) {
-    return this.next ? this.next.buildSelectSQL(driver) : [];
+  buildSelectSQL(driver, {pkOnly = false} = {}) {
+    return this.next ? this.next.buildSelectSQL(driver, {pkOnly}) : [];
   }
 
   /**

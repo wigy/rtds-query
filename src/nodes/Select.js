@@ -81,10 +81,17 @@ class Select extends QueryNode {
     return ret;
   }
 
-  buildSelectSQL(driver) {
-    let ret = this.select.reduce((prev, cur) => prev.concat(cur.buildSelectSQL(driver)), []);
+  buildSelectSQL(driver, {pkOnly = false} = {}) {
+    const Query = require('../Query');
+
+    let ret = this.select.reduce((prev, cur) => {
+      if (pkOnly && !Query.PK_REGEX.test(cur.as)) {
+        return prev;
+      }
+      return prev.concat(cur.buildSelectSQL(driver, {pkOnly}));
+    }, []);
     if (this.next) {
-      ret = ret.concat(this.next.buildSelectSQL(driver));
+      ret = ret.concat(this.next.buildSelectSQL(driver, {pkOnly}));
     }
     return ret;
   }

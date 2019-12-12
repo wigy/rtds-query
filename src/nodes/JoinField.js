@@ -36,7 +36,7 @@ class JoinField extends Field {
     return getParentRef(this.parent.parent);
   }
 
-  buildSelectSQL(driver) {
+  buildSelectSQL(driver, {pkOnly = false} = {}) {
     return [driver.escapeSelect(this.table, this.field, this.as)];
   }
 
