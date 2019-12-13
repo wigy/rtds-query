@@ -633,7 +633,8 @@ describe('Queries', () => {
       assert.strictEqual(res.name, 'Freshly Made');
       assert.strictEqual(res.age, 22);
 
-      const data = await new Query({table: 'users', select: ['name', 'age'], where: 'name = "Freshly Made"'}).getAll(driver);
+      const data = await new Query({table: 'users', select: ['name', 'age'], where: `id=${res.id}`}).getAll(driver);
+      assert.strictEqual(data.length, 1);
       assert.strictEqual(data[0].name, 'Freshly Made');
       assert.strictEqual(data[0].age, 22);
     });
