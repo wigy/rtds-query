@@ -21,6 +21,26 @@ class SqliteDriver extends SqlDriver {
       });
     });
   }
+
+  async runInsertQuery(sql, values, pk) {
+    const db = this.db;
+    return new Promise((resolve, reject) => {
+      const [, table] = /INSERT INTO `(.*?)`/.exec(sql);
+      db.run(sql, values, function(err, res) {
+        if (err) {
+          reject(err);
+        } else {
+          db.all(`SELECT * FROM \`${table}\` WHERE \`${pk}\` = ?`, [this.lastID], function(err, res) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(res[0]);
+            }
+          });
+        }
+      });
+    });
+  }
 }
 
 module.exports = SqliteDriver;

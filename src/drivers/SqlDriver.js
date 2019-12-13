@@ -20,6 +20,15 @@ class SqlDriver extends Driver {
     return as ? `\`${table}\` AS \`${as}\`` : `\`${table}\``;
   }
 
+  escapeInto(table) {
+    return `\`${table}\``;
+  }
+
+  createOneSQL(table, fields, _pk, obj) {
+    const sql = `INSERT INTO \`${table}\` (${fields.map(f => '`' + f + '`').join(', ')}) VALUES (${fields.map(() => '?').join(', ')})`;
+    return [sql, fields.map(f => obj[f])];
+  }
+
   escapeWhere(variable) {
     return '`' + variable.split('.').join('`.`') + '`';
   }

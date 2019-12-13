@@ -2,6 +2,7 @@ const clone = require('clone');
 const Formula = require('./Formula');
 const ContainerNode = require('./nodes/ContainerNode');
 const Select = require('./nodes/Select');
+const Insert = require('./nodes/Insert');
 const Join = require('./nodes/Join');
 const Field = require('./nodes/Field');
 const Parser = require('./Parser');
@@ -104,6 +105,7 @@ class Query {
         obj[name][index] = data[i][k];
       }
 
+      // TODO: We don't support multiple PKs since Sqlite does not. Remove unnecessary code.
       // Trim down singletons and collect PKs by table.
       Object.entries(obj).forEach(([name, pks]) => {
         const [, table] = name.split('/');
@@ -159,6 +161,16 @@ class Query {
     return driver.postProcess(data, this.getPostFormula());
   }
 
+  createOneSQL(driver, obj) {
+    return this.root.createOneSQL(driver, obj);
+  }
+
+  async createOne(driver, obj) {
+    const [sql, values] = this.createOneSQL(driver, obj);
+    const data = await driver.runInsertQuery(sql, values, this.root.pk);
+    return data;
+  }
+
   /**
    * Parse an object to query tree.
    */
@@ -190,6 +202,8 @@ class Query {
     }
     if (q.select) {
       return Select.parse(q);
+    } else if (q.insert) {
+      return Insert.parse(q);
     }
     throw new Error(`Unable to parse query ${JSON.stringify(q)}`);
   }

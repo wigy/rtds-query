@@ -148,12 +148,12 @@ class QueryNode {
   }
 
   /**
-   * Retrieve all matching entries.
+   * Construct a SQL for inserting a row.
    * @param {Driver} driver
+   * @returns {String}
    */
-  async getAll(driver) {
-    const sql = this.getAllSQL(driver);
-    return driver.runSelectQuery(sql);
+  createOneSQL(driver) {
+    throw new Error(`Creation not supported for ${this.constructor.name}.`);
   }
 
   /**

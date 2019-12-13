@@ -24,12 +24,20 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeFrom().`);
   }
 
+  createOneSQL(fields, pk, obj) {
+    throw new Error(`Driver ${this.constructor.name} does not implement createOneSQL().`);
+  }
+
   escapeWhere(variable) {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeWhere().`);
   }
 
   async runSelectQuery(sql) {
     throw new Error(`Driver ${this.constructor.name} does not implement runSelectQuery().`);
+  }
+
+  async runInsertQuery(sql, obj, pk) {
+    throw new Error(`Driver ${this.constructor.name} does not implement runInsertQuery().`);
   }
 
   /**

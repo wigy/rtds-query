@@ -21,7 +21,7 @@ class Select extends QueryNode {
     super({
       table: q.table,
       as: q.as || undefined,
-      pk: q.pk || ['id'],
+      pk: q.pk || ['id'], // TODO: We don't support multiple PKs since Sqlite does not. Remove unnecessary code.
       select: q.select,
       join: q.join || undefined,
       members: q.members || [],

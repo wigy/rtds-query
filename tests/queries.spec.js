@@ -621,4 +621,21 @@ describe('Queries', () => {
       { comments: new Set([1]), users: new Set([1])});
     });
   });
+
+  describe('Inserting', () => {
+    it('single items', async () => {
+      const q = new Query({
+        insert: ['name', 'age'],
+        table: 'users'
+      });
+
+      const res = await q.createOne(driver, {name: 'Freshly Made', age: 22});
+      assert.strictEqual(res.name, 'Freshly Made');
+      assert.strictEqual(res.age, 22);
+
+      const data = await new Query({table: 'users', select: ['name', 'age'], where: 'name = "Freshly Made"'}).getAll(driver);
+      assert.strictEqual(data[0].name, 'Freshly Made');
+      assert.strictEqual(data[0].age, 22);
+    });
+  });
 });
