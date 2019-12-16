@@ -33,6 +33,7 @@ class Where extends QueryNode {
     if (typeof q === 'string') {
       return new Where({where: q});
     }
+    // TODO: Support for object where like {name: 'This Name'}
     throw new Error(`Unable to parse a where condition ${JSON.stringify(q)}`);
   }
 }

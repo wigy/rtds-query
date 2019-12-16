@@ -29,6 +29,14 @@ class SqlDriver extends Driver {
     return [sql, fields.map(f => obj[f])];
   }
 
+  updateOneSQL(table, fields, _pk, obj) {
+    fields = fields.filter(f => f in obj);
+    const sql = `UPDATE \`${table}\` SET ${fields.map((f) => `\`${f}\` = ?`).join(', ')} WHERE \`${_pk}\` = ?`;
+    const f = fields.map(f => obj[f]);
+    f.push(obj[_pk]);
+    return [sql, f];
+  }
+
   escapeWhere(variable) {
     return '`' + variable.split('.').join('`.`') + '`';
   }

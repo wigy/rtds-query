@@ -39,7 +39,7 @@ class Insert extends MainQuery {
    */
   static parse(q) {
     if (typeof q.insert === 'string') {
-      // TODO: These should be converted to Field elements.
+      // TODO: These should be converted to Field elements (also in Update).
       q.insert = [q.insert];
     }
     return new Insert({

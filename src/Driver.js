@@ -24,12 +24,16 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeFrom().`);
   }
 
+  escapeWhere(variable) {
+    throw new Error(`Driver ${this.constructor.name} does not implement escapeWhere().`);
+  }
+
   createOneSQL(fields, pk, obj) {
     throw new Error(`Driver ${this.constructor.name} does not implement createOneSQL().`);
   }
 
-  escapeWhere(variable) {
-    throw new Error(`Driver ${this.constructor.name} does not implement escapeWhere().`);
+  updateOneSQL(fields, pk, obj) {
+    throw new Error(`Driver ${this.constructor.name} does not implement updateOneSQL().`);
   }
 
   async runSelectQuery(sql) {
@@ -38,6 +42,10 @@ class Driver {
 
   async runInsertQuery(sql, obj, pk) {
     throw new Error(`Driver ${this.constructor.name} does not implement runInsertQuery().`);
+  }
+
+  async runUpdateQuery(sql, obj, pk) {
+    throw new Error(`Driver ${this.constructor.name} does not implement runUpdateQuery().`);
   }
 
   /**

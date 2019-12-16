@@ -622,7 +622,7 @@ describe('Queries', () => {
     });
   });
 
-  describe.only('Inserting', () => {
+  describe('Inserting', () => {
     it('single items', async () => {
       const q = new Query({
         insert: ['name', 'age'],
@@ -640,11 +640,39 @@ describe('Queries', () => {
     });
   });
 
-  describe.only('Updating', () => {
-    it('single items', async () => {
-      // TODO: Support for object where like {name: 'Freshly made'}
-      const userId = (await (new Query({select: 'id', table: 'users', where: 'name="Freshly Made"'}).getOne(driver))).id;
-      console.log(userId);
+  describe('Updating', () => {
+    it('single items fully', async () => {
+      const userId = 3;
+      const q = new Query({
+        update: ['name', 'age'],
+        table: 'users'
+      });
+      const res = await q.updateOne(driver, {id: userId, name: 'Aging', age: 53});
+      assert.strictEqual(res.id, userId);
+      assert.strictEqual(res.name, 'Aging');
+      assert.strictEqual(res.age, 53);
+
+      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).getAll(driver);
+      assert.strictEqual(unaffected.length, 1);
+      assert.strictEqual(unaffected[0].name, 'Alice A');
+      assert.strictEqual(unaffected[0].age, 21);
+    });
+
+    it('single items partially', async () => {
+      const userId = 2;
+      const q = new Query({
+        update: ['name', 'age'],
+        table: 'users'
+      });
+      const res = await q.updateOne(driver, {id: userId, age: 12});
+      assert.strictEqual(res.id, userId);
+      assert.strictEqual(res.name, 'Bob B');
+      assert.strictEqual(res.age, 12);
+
+      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).getAll(driver);
+      assert.strictEqual(unaffected.length, 1);
+      assert.strictEqual(unaffected[0].name, 'Alice A');
+      assert.strictEqual(unaffected[0].age, 21);
     });
   });
 });

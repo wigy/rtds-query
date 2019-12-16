@@ -3,6 +3,7 @@ const Formula = require('./Formula');
 const ContainerNode = require('./nodes/ContainerNode');
 const Select = require('./nodes/Select');
 const Insert = require('./nodes/Insert');
+const Update = require('./nodes/Update');
 const Join = require('./nodes/Join');
 const Field = require('./nodes/Field');
 const Parser = require('./Parser');
@@ -202,6 +203,29 @@ class Query {
   }
 
   /**
+   * Construct SQL for updating one instance.
+   * @param {Driver} driver
+   * @param {String} cond
+   * @param {Object} obj
+   * @returns {Object}
+   */
+  updateOneSQL(driver, obj) {
+    return this.root.updateOneSQL(driver, obj);
+  }
+
+  /**
+   * Execute a query to update one instance.
+   * @param {Driver} driver
+   * @param {Object} obj
+   * @returns {Object}
+   */
+  async updateOne(driver, obj) {
+    const [sql, values] = this.updateOneSQL(driver, obj);
+    const data = await driver.runUpdateQuery(sql, values, this.root.pk);
+    return data;
+  }
+
+  /**
    * Parse an object to query tree.
    */
   static parse(q) {
@@ -234,6 +258,8 @@ class Query {
       return Select.parse(q);
     } else if (q.insert) {
       return Insert.parse(q);
+    } else if (q.update) {
+      return Update.parse(q);
     }
     throw new Error(`Unable to parse query ${JSON.stringify(q)}`);
   }

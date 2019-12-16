@@ -41,6 +41,26 @@ class SqliteDriver extends SqlDriver {
       });
     });
   }
+
+  async runUpdateQuery(sql, values, pk) {
+    const db = this.db;
+    return new Promise((resolve, reject) => {
+      const [, table] = /UPDATE `(.*?)`/.exec(sql);
+      db.run(sql, values, function(err, res) {
+        if (err) {
+          reject(err);
+        } else {
+          db.all(`SELECT * FROM \`${table}\` WHERE \`${pk}\` = ?`, [values[values.length - 1]], function(err, res) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(res[0]);
+            }
+          });
+        }
+      });
+    });
+  }
 }
 
 module.exports = SqliteDriver;

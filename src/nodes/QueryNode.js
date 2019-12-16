@@ -157,6 +157,15 @@ class QueryNode {
   }
 
   /**
+   * Construct a SQL for updating a row.
+   * @param {Driver} driver
+   * @returns {String}
+   */
+  updateOneSQL(driver) {
+    throw new Error(`Updating not supported for ${this.constructor.name}.`);
+  }
+
+  /**
    * Construct a list of entries for SELECT part of SQL.
    * @param {Driver} driver
    * @returns {String[]}
