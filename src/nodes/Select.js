@@ -1,5 +1,5 @@
 const clone = require('clone');
-const QueryNode = require('./QueryNode');
+const MainQuery = require('./MainQuery');
 const Field = require('./Field');
 const Join = require('./Join');
 const Where = require('./Where');
@@ -16,7 +16,7 @@ const Where = require('./Where');
  * - `members` additional Select nodes to treat as object members of the result lines
  * - `[where]` array of conditions attached if any
  */
-class Select extends QueryNode {
+class Select extends MainQuery {
   constructor(q) {
     super({
       table: q.table,
@@ -44,6 +44,10 @@ class Select extends QueryNode {
         this.members[i - 1].chain(this.members[i]);
       }
     }
+  }
+
+  getFields() {
+    return this.select;
   }
 
   getName() {

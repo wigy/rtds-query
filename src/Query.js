@@ -151,6 +151,10 @@ class Query {
   /**
    * Execute a query to retrieve all fields specified in the query.
    * @param {Driver} driver
+   * @param {String} where
+   * @param {Boolean} [param3.noPostProcessing]
+   * @param {Boolean} [param3.pkOnly]
+   * @returns {Object[]}
    */
   async getAll(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
     const sql = this.getAllSQL(driver, where, {pkOnly});
@@ -161,10 +165,36 @@ class Query {
     return driver.postProcess(data, this.getPostFormula());
   }
 
+  /**
+   * Execute a query to retrieve first match for the selected query.
+   * @param {Driver} driver
+   * @param {String} where
+   * @param {Boolean} [param3.noPostProcessing]
+   * @param {Boolean} [param3.pkOnly]
+   * @returns {Object|null}
+   */
+  async getOne(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
+    // TODO: Could limit results to one once supported.
+    const data = await this.getAll(driver, where, {noPostProcessing, pkOnly});
+    return data && data.length ? data[0] : null;
+  }
+
+  /**
+   * Construct SQL for creating one new instance.
+   * @param {Driver} driver
+   * @param {Object} obj
+   * @returns {Object}
+   */
   createOneSQL(driver, obj) {
     return this.root.createOneSQL(driver, obj);
   }
 
+  /**
+   * Execute a query to create one new instance.
+   * @param {Driver} driver
+   * @param {Object} obj
+   * @returns {Object}
+   */
   async createOne(driver, obj) {
     const [sql, values] = this.createOneSQL(driver, obj);
     const data = await driver.runInsertQuery(sql, values, this.root.pk);

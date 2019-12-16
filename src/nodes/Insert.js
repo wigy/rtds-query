@@ -1,4 +1,4 @@
-const QueryNode = require('./QueryNode');
+const MainQuery = require('./MainQuery');
 
 /**
  * Insert query.
@@ -8,13 +8,17 @@ const QueryNode = require('./QueryNode');
  * - `table` name of the table
  * - `[pk]` name of the primary key (default 'id')
  */
-class Insert extends QueryNode {
+class Insert extends MainQuery {
   constructor(q) {
     super({
       insert: q.insert,
       table: q.table,
       pk: q.pk || 'id'
     });
+  }
+
+  getFields() {
+    return this.insert;
   }
 
   getName() {
@@ -35,6 +39,7 @@ class Insert extends QueryNode {
    */
   static parse(q) {
     if (typeof q.insert === 'string') {
+      // TODO: These should be converted to Field elements.
       q.insert = [q.insert];
     }
     return new Insert({

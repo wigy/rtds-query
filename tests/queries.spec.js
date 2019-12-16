@@ -622,7 +622,7 @@ describe('Queries', () => {
     });
   });
 
-  describe('Inserting', () => {
+  describe.only('Inserting', () => {
     it('single items', async () => {
       const q = new Query({
         insert: ['name', 'age'],
@@ -637,6 +637,14 @@ describe('Queries', () => {
       assert.strictEqual(data.length, 1);
       assert.strictEqual(data[0].name, 'Freshly Made');
       assert.strictEqual(data[0].age, 22);
+    });
+  });
+
+  describe.only('Updating', () => {
+    it('single items', async () => {
+      // TODO: Support for object where like {name: 'Freshly made'}
+      const userId = (await (new Query({select: 'id', table: 'users', where: 'name="Freshly Made"'}).getOne(driver))).id;
+      console.log(userId);
     });
   });
 });
