@@ -166,6 +166,15 @@ class QueryNode {
   }
 
   /**
+   * Construct a SQL for deleting a row.
+   * @param {Driver} driver
+   * @returns {String}
+   */
+  deleteOneSQL(driver) {
+    throw new Error(`Deleting not supported for ${this.constructor.name}.`);
+  }
+
+  /**
    * Construct a list of entries for SELECT part of SQL.
    * @param {Driver} driver
    * @returns {String[]}

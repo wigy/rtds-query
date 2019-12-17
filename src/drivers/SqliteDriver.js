@@ -61,6 +61,19 @@ class SqliteDriver extends SqlDriver {
       });
     });
   }
+
+  async runDeleteQuery(sql, values, pk) {
+    const db = this.db;
+    return new Promise((resolve, reject) => {
+      db.run(sql, values, function(err, res) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
 }
 
 module.exports = SqliteDriver;

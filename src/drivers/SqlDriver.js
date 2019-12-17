@@ -37,6 +37,12 @@ class SqlDriver extends Driver {
     return [sql, f];
   }
 
+  deleteOneSQL(table, obj) {
+    const sql = `DELETE FROM \`${table}\` WHERE ${Object.keys(obj).map((k) => `\`${k}\` = ?`).join(' AND ')}`;
+    const fields = Object.values(obj);
+    return [sql, fields];
+  }
+
   escapeWhere(variable) {
     return '`' + variable.split('.').join('`.`') + '`';
   }

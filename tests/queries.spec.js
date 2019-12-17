@@ -675,4 +675,38 @@ describe('Queries', () => {
       assert.strictEqual(unaffected[0].age, 21);
     });
   });
+
+  describe('Deleting', () => {
+    it('with single keys', async () => {
+      const q = new Query({
+        delete: ['id'],
+        table: 'users'
+      });
+      await q.deleteOne(driver, {id: 3});
+      const userIds = await new Query({select: 'id', table: 'users'}).getAll(driver);
+      assert.deepStrictEqual(userIds, [{ id: 1 }, { id: 2 }, { id: 4 }]);
+    });
+
+    it('with multiple keys', async () => {
+      const q = new Query({
+        delete: ['id', 'name'],
+        table: 'users'
+      });
+      await q.deleteOne(driver, {id: 1, name: 'Alice A'});
+      const userIds = await new Query({select: 'id', table: 'users'}).getAll(driver);
+      assert.deepStrictEqual(userIds, [{ id: 2 }, { id: 4 }]);
+    });
+
+    it('with non-existing keys', async () => {
+      const q = new Query({
+        delete: ['name'],
+        table: 'users'
+      });
+      await q.deleteOne(driver, {name: 'Not here'});
+      const userIds = await new Query({select: 'id', table: 'users'}).getAll(driver);
+      assert.deepStrictEqual(userIds, [{ id: 2 }, { id: 4 }]);
+    });
+  });
 });
+
+// TODO: We need also collection of tests for invalid queries throwing an exception.

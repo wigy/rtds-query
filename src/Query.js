@@ -4,6 +4,7 @@ const ContainerNode = require('./nodes/ContainerNode');
 const Select = require('./nodes/Select');
 const Insert = require('./nodes/Insert');
 const Update = require('./nodes/Update');
+const Delete = require('./nodes/Delete');
 const Join = require('./nodes/Join');
 const Field = require('./nodes/Field');
 const Parser = require('./Parser');
@@ -205,7 +206,6 @@ class Query {
   /**
    * Construct SQL for updating one instance.
    * @param {Driver} driver
-   * @param {String} cond
    * @param {Object} obj
    * @returns {Object}
    */
@@ -222,6 +222,28 @@ class Query {
   async updateOne(driver, obj) {
     const [sql, values] = this.updateOneSQL(driver, obj);
     const data = await driver.runUpdateQuery(sql, values, this.root.pk);
+    return data;
+  }
+
+  /**
+   * Construct SQL for deleting one instance.
+   * @param {Driver} driver
+   * @param {Object} obj
+   * @returns {Object}
+   */
+  deleteOneSQL(driver, obj) {
+    return this.root.deleteOneSQL(driver, obj);
+  }
+
+  /**
+   * Execute a query to delete one instance.
+   * @param {Driver} driver
+   * @param {Object} obj
+   * @returns {Object}
+   */
+  async deleteOne(driver, obj) {
+    const [sql, values] = this.deleteOneSQL(driver, obj);
+    const data = await driver.runDeleteQuery(sql, values, this.root.pk);
     return data;
   }
 
@@ -260,6 +282,8 @@ class Query {
       return Insert.parse(q);
     } else if (q.update) {
       return Update.parse(q);
+    } else if (q.delete) {
+      return Delete.parse(q);
     }
     throw new Error(`Unable to parse query ${JSON.stringify(q)}`);
   }

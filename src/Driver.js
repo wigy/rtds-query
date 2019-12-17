@@ -36,6 +36,10 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement updateOneSQL().`);
   }
 
+  deleteOneSQL(fields, pk, obj) {
+    throw new Error(`Driver ${this.constructor.name} does not implement deleteOneSQL().`);
+  }
+
   async runSelectQuery(sql) {
     throw new Error(`Driver ${this.constructor.name} does not implement runSelectQuery().`);
   }
@@ -46,6 +50,10 @@ class Driver {
 
   async runUpdateQuery(sql, obj, pk) {
     throw new Error(`Driver ${this.constructor.name} does not implement runUpdateQuery().`);
+  }
+
+  async runDeleteQuery(sql, obj, pk) {
+    throw new Error(`Driver ${this.constructor.name} does not implement runDeleteQuery().`);
   }
 
   /**
