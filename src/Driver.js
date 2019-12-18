@@ -56,6 +56,10 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement runDeleteQuery().`);
   }
 
+  async runQuery(sql) {
+    throw new Error(`Driver ${this.constructor.name} does not implement runQuery().`);
+  }
+
   /**
    * Run the post-processing for data.
    * @param {Object[]} data

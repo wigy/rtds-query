@@ -1,5 +1,6 @@
 const assert = require('assert');
-const knex = require('knex');
+const fs = require('fs');
+const path = require('path');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
@@ -7,8 +8,18 @@ const DEBUG = false;
 // If set, throw assertions.
 const ASSERT = true;
 
+// Helper to read in SQL-file.
+const readSql = async (driver, filePath) => {
+  const fileContent = fs.readFileSync(filePath).toString('utf-8');
+  for (let sql of fileContent.split(';')) {
+    sql = sql.trim();
+    if (sql) {
+      await driver.runQuery(sql);
+    }
+  }
+};
+
 describe('Queries', () => {
-  let db;
   let driver;
 
   /**
@@ -16,24 +27,10 @@ describe('Queries', () => {
    */
   before(async () => {
     const DATABASE_URL = process.env.DATABASE_URL || `sqlite:///${__dirname}/test.sqlite`;
-    const uri = new URL(DATABASE_URL);
-    switch (uri.protocol) {
-      case 'sqlite:':
-        db = knex({
-          client: 'sqlite3',
-          connection: {
-            filename: uri.pathname
-          },
-          useNullAsDefault: true
-        });
-        // TODO: Add raw SQL interface for driver and run SQL-file directly.
-        await db.migrate.latest({directory: `${__dirname}/migrations`});
-        break;
-      default:
-        throw new Error(`Testing ${DATABASE_URL} not yet supported.`);
-    }
-
     driver = Driver.create(DATABASE_URL);
+
+    await readSql(driver, path.join(__dirname, 'migrations/init.sql'));
+
     await new Query({
       insert: ['id', 'name', 'age'],
       table: 'users'
@@ -53,10 +50,10 @@ describe('Queries', () => {
   });
 
   /**
-   * Rollback changes in database.
+   * Drop all testing tables.
    */
   after(async () => {
-    await db.migrate.rollback({directory: `${__dirname}/migrations`});
+    await readSql(driver, path.join(__dirname, 'migrations/exit.sql'));
   });
 
   /**
