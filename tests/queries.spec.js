@@ -1,5 +1,5 @@
 const assert = require('assert');
-const knex = require('knex'); // TODO: Drop knex once driver supports inserting.
+const knex = require('knex');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
@@ -33,12 +33,23 @@ describe('Queries', () => {
         throw new Error(`Testing ${DATABASE_URL} not yet supported.`);
     }
 
-    await db('users').insert(require('./sample-data/users.json'));
-    await db('todos').insert(require('./sample-data/todos.json'));
-    await db('projects').insert(require('./sample-data/projects.json'));
-    await db('comments').insert(require('./sample-data/comments.json'));
-
     driver = Driver.create(DATABASE_URL);
+    await new Query({
+      insert: ['id', 'name', 'age'],
+      table: 'users'
+    }).create(driver, require('./sample-data/users.json'));
+    await new Query({
+      insert: ['id', 'creatorId', 'name'],
+      table: 'projects'
+    }).create(driver, require('./sample-data/projects.json'));
+    await new Query({
+      insert: ['id', 'title', 'creatorId', 'projectId', 'ownerId'],
+      table: 'todos'
+    }).create(driver, require('./sample-data/todos.json'));
+    await new Query({
+      insert: ['id', 'userId', 'todoId', 'comment'],
+      table: 'comments'
+    }).create(driver, require('./sample-data/comments.json'));
   });
 
   /**
@@ -80,12 +91,6 @@ describe('Queries', () => {
       }
     }
   };
-
-  /*
-  describe.only('dummy', () => {
-    it('dummy', () => {});
-  });
-  */
 
   /**
    * Tests.
