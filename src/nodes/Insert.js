@@ -29,8 +29,8 @@ class Insert extends MainQuery {
     return this.table + '(' + this.insert.join(', ') + ')';
   }
 
-  createOneSQL(driver, obj) {
-    return driver.createOneSQL(this.table, this.insert, this.pk, obj);
+  createSQL(driver, obj) {
+    return driver.createSQL(this.table, this.insert, this.pk, obj);
   }
 
   /**

@@ -28,16 +28,16 @@ class Driver {
     throw new Error(`Driver ${this.constructor.name} does not implement escapeWhere().`);
   }
 
-  createOneSQL(fields, pk, obj) {
-    throw new Error(`Driver ${this.constructor.name} does not implement createOneSQL().`);
+  createSQL(fields, pk, obj) {
+    throw new Error(`Driver ${this.constructor.name} does not implement createSQL().`);
   }
 
-  updateOneSQL(fields, pk, obj) {
-    throw new Error(`Driver ${this.constructor.name} does not implement updateOneSQL().`);
+  updateSQL(fields, pk, obj) {
+    throw new Error(`Driver ${this.constructor.name} does not implement updateSQL().`);
   }
 
-  deleteOneSQL(fields, pk, obj) {
-    throw new Error(`Driver ${this.constructor.name} does not implement deleteOneSQL().`);
+  deleteSQL(fields, pk, obj) {
+    throw new Error(`Driver ${this.constructor.name} does not implement deleteSQL().`);
   }
 
   async runSelectQuery(sql) {

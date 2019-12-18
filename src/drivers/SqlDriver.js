@@ -24,7 +24,7 @@ class SqlDriver extends Driver {
     return `\`${table}\``;
   }
 
-  createOneSQL(table, fields, _pk, obj) {
+  createSQL(table, fields, _pk, obj) {
     if (!(obj instanceof Array)) {
       obj = [obj];
     }
@@ -34,7 +34,7 @@ class SqlDriver extends Driver {
     return [sql, values];
   }
 
-  updateOneSQL(table, fields, _pk, obj) {
+  updateSQL(table, fields, _pk, obj) {
     fields = fields.filter(f => f in obj);
     const sql = `UPDATE \`${table}\` SET ${fields.map((f) => `\`${f}\` = ?`).join(', ')} WHERE \`${_pk}\` = ?`;
     const f = fields.map(f => obj[f]);
@@ -42,7 +42,7 @@ class SqlDriver extends Driver {
     return [sql, f];
   }
 
-  deleteOneSQL(table, obj) {
+  deleteSQL(table, obj) {
     const sql = `DELETE FROM \`${table}\` WHERE ${Object.keys(obj).map((k) => `\`${k}\` = ?`).join(' AND ')}`;
     const fields = Object.values(obj);
     return [sql, fields];

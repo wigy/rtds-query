@@ -57,21 +57,21 @@ describe('Queries', () => {
       console.log();
       q.dump();
       console.log();
-      console.log(q.getAllSQL(driver, cond) + ';');
+      console.log(q.selectSQL(driver, cond) + ';');
     }
-    const res = await q.getAll(driver, cond);
+    const res = await q.select(driver, cond);
     if (DEBUG) {
       console.log('=>');
       console.dir(res, {depth: null});
     }
     if (ASSERT) {
-      assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} converted to ${q.getAllSQL(driver, cond)} failed.`);
+      assert.deepStrictEqual(res, result, `Query ${JSON.stringify(query)} converted to ${q.selectSQL(driver, cond)} failed.`);
     }
     if (pks) {
       const qpk = q.selectPKs();
-      const resPk = await qpk.getAllPKs(driver, cond);
+      const resPk = await qpk.allPKs(driver, cond);
       if (DEBUG) {
-        console.log(qpk.getAllSQL(driver, cond) + ';');
+        console.log(qpk.selectSQL(driver, cond) + ';');
         console.log('=> (PKS)');
         console.dir(resPk, {depth: null});
       }
@@ -636,11 +636,11 @@ describe('Queries', () => {
         table: 'users'
       });
 
-      const res = await q.createOne(driver, {name: 'Freshly Made', age: 22});
+      const res = await q.create(driver, {name: 'Freshly Made', age: 22});
       assert.strictEqual(res.name, 'Freshly Made');
       assert.strictEqual(res.age, 22);
 
-      const data = await new Query({table: 'users', select: ['name', 'age'], where: `id=${res.id}`}).getAll(driver);
+      const data = await new Query({table: 'users', select: ['name', 'age'], where: `id=${res.id}`}).select(driver);
       assert.strictEqual(data.length, 1);
       assert.strictEqual(data[0].name, 'Freshly Made');
       assert.strictEqual(data[0].age, 22);
@@ -652,14 +652,14 @@ describe('Queries', () => {
         table: 'users'
       });
 
-      await q.createOne(driver, [
+      await q.create(driver, [
         {name: 'Mass Insert 1', age: 102},
         {name: 'Mass Insert 2', age: 102},
         {name: 'Mass Insert 3', age: 102},
         {name: 'Mass Insert 4', age: 102}
       ]);
       // TODO: Need orderBy support to ensure correct order for assert.
-      const data = await new Query({table: 'users', select: ['name', 'age'], where: 'age=102'}).getAll(driver);
+      const data = await new Query({table: 'users', select: ['name', 'age'], where: 'age=102'}).select(driver);
       assert.deepStrictEqual(data, [
         {name: 'Mass Insert 1', age: 102},
         {name: 'Mass Insert 2', age: 102},
@@ -669,7 +669,7 @@ describe('Queries', () => {
       await new Query({
         delete: ['age'],
         table: 'users'
-      }).deleteOne(driver, {age: 102});
+      }).delete(driver, {age: 102});
     });
   });
 
@@ -680,12 +680,12 @@ describe('Queries', () => {
         update: ['name', 'age'],
         table: 'users'
       });
-      const res = await q.updateOne(driver, {id: userId, name: 'Aging', age: 53});
+      const res = await q.update(driver, {id: userId, name: 'Aging', age: 53});
       assert.strictEqual(res.id, userId);
       assert.strictEqual(res.name, 'Aging');
       assert.strictEqual(res.age, 53);
 
-      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).getAll(driver);
+      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).select(driver);
       assert.strictEqual(unaffected.length, 1);
       assert.strictEqual(unaffected[0].name, 'Alice A');
       assert.strictEqual(unaffected[0].age, 21);
@@ -697,12 +697,12 @@ describe('Queries', () => {
         update: ['name', 'age'],
         table: 'users'
       });
-      const res = await q.updateOne(driver, {id: userId, age: 12});
+      const res = await q.update(driver, {id: userId, age: 12});
       assert.strictEqual(res.id, userId);
       assert.strictEqual(res.name, 'Bob B');
       assert.strictEqual(res.age, 12);
 
-      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).getAll(driver);
+      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).select(driver);
       assert.strictEqual(unaffected.length, 1);
       assert.strictEqual(unaffected[0].name, 'Alice A');
       assert.strictEqual(unaffected[0].age, 21);
@@ -714,12 +714,12 @@ describe('Queries', () => {
         update: ['name', 'age'],
         table: 'users'
       });
-      const res = await q.updateOne(driver, {id: userId, name: 'Aging', age: 53});
+      const res = await q.update(driver, {id: userId, name: 'Aging', age: 53});
       assert.strictEqual(res.id, userId);
       assert.strictEqual(res.name, 'Aging');
       assert.strictEqual(res.age, 53);
 
-      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).getAll(driver);
+      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).select(driver);
       assert.strictEqual(unaffected.length, 1);
       assert.strictEqual(unaffected[0].name, 'Alice A');
       assert.strictEqual(unaffected[0].age, 21);
@@ -732,8 +732,8 @@ describe('Queries', () => {
         delete: ['id'],
         table: 'users'
       });
-      await q.deleteOne(driver, {id: 3});
-      const userIds = await new Query({select: 'id', table: 'users'}).getAll(driver);
+      await q.delete(driver, {id: 3});
+      const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{ id: 1 }, { id: 2 }, { id: 4 }]);
     });
 
@@ -742,8 +742,8 @@ describe('Queries', () => {
         delete: ['id', 'name'],
         table: 'users'
       });
-      await q.deleteOne(driver, {id: 1, name: 'Alice A'});
-      const userIds = await new Query({select: 'id', table: 'users'}).getAll(driver);
+      await q.delete(driver, {id: 1, name: 'Alice A'});
+      const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{ id: 2 }, { id: 4 }]);
     });
 
@@ -752,8 +752,8 @@ describe('Queries', () => {
         delete: ['name'],
         table: 'users'
       });
-      await q.deleteOne(driver, {name: 'Not here'});
-      const userIds = await new Query({select: 'id', table: 'users'}).getAll(driver);
+      await q.delete(driver, {name: 'Not here'});
+      const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{ id: 2 }, { id: 4 }]);
     });
   });

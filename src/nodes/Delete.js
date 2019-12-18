@@ -29,9 +29,9 @@ class Update extends MainQuery {
     return this.table + '(' + this.delete.join(', ') + ')';
   }
 
-  deleteOneSQL(driver, obj) {
+  deleteSQL(driver, obj) {
     // TODO: Verify that fields for matching are defined in `this.delete`.
-    return driver.deleteOneSQL(this.table, obj);
+    return driver.deleteSQL(this.table, obj);
   }
 
   /**

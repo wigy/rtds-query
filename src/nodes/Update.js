@@ -29,11 +29,11 @@ class Update extends MainQuery {
     return this.table + '(' + this.update.join(', ') + ')';
   }
 
-  updateOneSQL(driver, obj) {
+  updateSQL(driver, obj) {
     if (!(this.pk in obj)) {
       throw new Error(`There is no pk ${JSON.stringify(this.pk)} for update in ${JSON.stringify(obj)}`);
     }
-    return driver.updateOneSQL(this.table, this.update, this.pk, obj);
+    return driver.updateSQL(this.table, this.update, this.pk, obj);
   }
 
   /**

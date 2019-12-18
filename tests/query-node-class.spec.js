@@ -155,7 +155,7 @@ describe('Query (and QueryNode) class', () => {
           }
         ]
       });
-      const sql = q.getAllSQL(driver, 'users.id > 1 AND users.tools.id < 1');
+      const sql = q.selectSQL(driver, 'users.id > 1 AND users.tools.id < 1');
       assert(/SELECT `users\d+`.`id` AS `id`, `users\d+`.`name` AS `name`, `users\d+`.`age` AS `age`, `tools\d+`.`id` AS `tools.id`, `tools\d+`.`name` AS `tools.name` FROM `users` AS `users\d+` INNER JOIN `tools` AS `tools\d+` ON `users\d+`.`id` = `tools\d+`.`ownerId` WHERE \(users.`tools\d+`.`id` > 1 AND `tools\d+`.`id` < 1\)/.test(sql));
     });
 
@@ -165,7 +165,7 @@ describe('Query (and QueryNode) class', () => {
         select: ['id', 'name', 'age']
       });
       const qpk = q.selectPKs();
-      const sql = qpk.getAllSQL(driver, 'users.age < 40 AND users.id > 1');
+      const sql = qpk.selectSQL(driver, 'users.age < 40 AND users.id > 1');
       assert(/SELECT `users\d+`.`id` AS `id`, `users\d+`.`name` AS `name`, `users\d+`.`age` AS `age`, `users\d+`.`id` AS `PK\[users\[0\]\]` FROM `users` AS `users\d+` WHERE \(`users\d+`.`age` < 40 AND `users\d+`.`id` > 1\)/.test(sql));
     });
   });

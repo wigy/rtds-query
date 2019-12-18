@@ -85,9 +85,9 @@ class Query {
    * @param {Driver} driver
    * @param {String} cond
    */
-  async getAllPKs(driver, cond = null) {
+  async allPKs(driver, cond = null) {
     // Now they are retrieved unnecessarily.
-    const data = await this.getAll(driver, cond, {noPostProcessing: true, pkOnly: true});
+    const data = await this.select(driver, cond, {noPostProcessing: true, pkOnly: true});
     let keys = data.length ? Object.keys(data[0]).filter(k => Query.PK_REGEX.test(k)) : [];
     keys = keys.map(k => [...Query.PK_REGEX.exec(k), k]);
     const ret = {};
@@ -135,16 +135,16 @@ class Query {
    * @param {Driver} driver
    * @param {}
    */
-  getAllSQL(driver, where = null, {pkOnly = false} = {}) {
+  selectSQL(driver, where = null, {pkOnly = false} = {}) {
     if (where === null) {
       where = '';
     }
     if (!this.sql[where]) {
       if (where !== '') {
         const q = this.withWhere(where);
-        this.sql[where] = q.getAllSQL(driver, null, {pkOnly});
+        this.sql[where] = q.selectSQL(driver, null, {pkOnly});
       } else {
-        this.sql[where] = this.root.getAllSQL(driver, {pkOnly});
+        this.sql[where] = this.root.selectSQL(driver, {pkOnly});
       }
     }
     return this.sql[where];
@@ -158,8 +158,8 @@ class Query {
    * @param {Boolean} [param3.pkOnly]
    * @returns {Object[]}
    */
-  async getAll(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
-    const sql = this.getAllSQL(driver, where, {pkOnly});
+  async select(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
+    const sql = this.selectSQL(driver, where, {pkOnly});
     const data = await driver.runSelectQuery(sql);
     if (noPostProcessing) {
       return data;
@@ -177,7 +177,7 @@ class Query {
    */
   async getOne(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
     // TODO: Could limit results to one once supported.
-    const data = await this.getAll(driver, where, {noPostProcessing, pkOnly});
+    const data = await this.select(driver, where, {noPostProcessing, pkOnly});
     return data && data.length ? data[0] : null;
   }
 
@@ -187,8 +187,8 @@ class Query {
    * @param {Object} obj
    * @returns {Object}
    */
-  createOneSQL(driver, obj) {
-    return this.root.createOneSQL(driver, obj);
+  createSQL(driver, obj) {
+    return this.root.createSQL(driver, obj);
   }
 
   /**
@@ -197,8 +197,8 @@ class Query {
    * @param {Object} obj
    * @returns {Object}
    */
-  async createOne(driver, obj) {
-    const [sql, values] = this.createOneSQL(driver, obj);
+  async create(driver, obj) {
+    const [sql, values] = this.createSQL(driver, obj);
     const data = await driver.runInsertQuery(sql, values, this.root.pk);
     return data;
   }
@@ -209,8 +209,8 @@ class Query {
    * @param {Object} obj
    * @returns {Object}
    */
-  updateOneSQL(driver, obj) {
-    return this.root.updateOneSQL(driver, obj);
+  updateSQL(driver, obj) {
+    return this.root.updateSQL(driver, obj);
   }
 
   /**
@@ -219,8 +219,8 @@ class Query {
    * @param {Object} obj
    * @returns {Object}
    */
-  async updateOne(driver, obj) {
-    const [sql, values] = this.updateOneSQL(driver, obj);
+  async update(driver, obj) {
+    const [sql, values] = this.updateSQL(driver, obj);
     const data = await driver.runUpdateQuery(sql, values, this.root.pk);
     return data;
   }
@@ -231,8 +231,8 @@ class Query {
    * @param {Object} obj
    * @returns {Object}
    */
-  deleteOneSQL(driver, obj) {
-    return this.root.deleteOneSQL(driver, obj);
+  deleteSQL(driver, obj) {
+    return this.root.deleteSQL(driver, obj);
   }
 
   /**
@@ -241,8 +241,8 @@ class Query {
    * @param {Object} obj
    * @returns {Object}
    */
-  async deleteOne(driver, obj) {
-    const [sql, values] = this.deleteOneSQL(driver, obj);
+  async delete(driver, obj) {
+    const [sql, values] = this.deleteSQL(driver, obj);
     const data = await driver.runDeleteQuery(sql, values, this.root.pk);
     return data;
   }

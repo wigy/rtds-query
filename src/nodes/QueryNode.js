@@ -136,7 +136,7 @@ class QueryNode {
    * @param {Driver} driver
    * @returns {String}
    */
-  getAllSQL(driver, {pkOnly = false} = {}) {
+  selectSQL(driver, {pkOnly = false} = {}) {
     const select = this.buildSelectSQL(driver, {pkOnly});
     const from = this.buildFromSQL(driver);
     let sql = `SELECT ${select.join(', ')} FROM ${from.join(' ')}`;
@@ -152,7 +152,7 @@ class QueryNode {
    * @param {Driver} driver
    * @returns {String}
    */
-  createOneSQL(driver) {
+  createSQL(driver) {
     throw new Error(`Creation not supported for ${this.constructor.name}.`);
   }
 
@@ -161,7 +161,7 @@ class QueryNode {
    * @param {Driver} driver
    * @returns {String}
    */
-  updateOneSQL(driver) {
+  updateSQL(driver) {
     throw new Error(`Updating not supported for ${this.constructor.name}.`);
   }
 
@@ -170,7 +170,7 @@ class QueryNode {
    * @param {Driver} driver
    * @returns {String}
    */
-  deleteOneSQL(driver) {
+  deleteSQL(driver) {
     throw new Error(`Deleting not supported for ${this.constructor.name}.`);
   }
 
