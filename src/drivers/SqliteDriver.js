@@ -34,6 +34,7 @@ class SqliteDriver extends SqlDriver {
             if (err) {
               reject(err);
             } else {
+              // TODO: This returns only one value even if multiple were inserted.
               resolve(res[0]);
             }
           });

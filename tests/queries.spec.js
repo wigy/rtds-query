@@ -26,6 +26,7 @@ describe('Queries', () => {
           },
           useNullAsDefault: true
         });
+        // TODO: Add raw SQL interface for driver and run SQL-file directly.
         await db.migrate.latest({directory: `${__dirname}/migrations`});
         break;
       default:
@@ -79,6 +80,12 @@ describe('Queries', () => {
       }
     }
   };
+
+  /*
+  describe.only('dummy', () => {
+    it('dummy', () => {});
+  });
+  */
 
   /**
    * Tests.
@@ -638,6 +645,32 @@ describe('Queries', () => {
       assert.strictEqual(data[0].name, 'Freshly Made');
       assert.strictEqual(data[0].age, 22);
     });
+
+    it('multiple items', async () => {
+      const q = new Query({
+        insert: ['name', 'age'],
+        table: 'users'
+      });
+
+      await q.createOne(driver, [
+        {name: 'Mass Insert 1', age: 102},
+        {name: 'Mass Insert 2', age: 102},
+        {name: 'Mass Insert 3', age: 102},
+        {name: 'Mass Insert 4', age: 102}
+      ]);
+      // TODO: Need orderBy support to ensure correct order for assert.
+      const data = await new Query({table: 'users', select: ['name', 'age'], where: 'age=102'}).getAll(driver);
+      assert.deepStrictEqual(data, [
+        {name: 'Mass Insert 1', age: 102},
+        {name: 'Mass Insert 2', age: 102},
+        {name: 'Mass Insert 3', age: 102},
+        {name: 'Mass Insert 4', age: 102}
+      ]);
+      await new Query({
+        delete: ['age'],
+        table: 'users'
+      }).deleteOne(driver, {age: 102});
+    });
   });
 
   describe('Updating', () => {
@@ -668,6 +701,23 @@ describe('Queries', () => {
       assert.strictEqual(res.id, userId);
       assert.strictEqual(res.name, 'Bob B');
       assert.strictEqual(res.age, 12);
+
+      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).getAll(driver);
+      assert.strictEqual(unaffected.length, 1);
+      assert.strictEqual(unaffected[0].name, 'Alice A');
+      assert.strictEqual(unaffected[0].age, 21);
+    });
+
+    it('single items fully', async () => {
+      const userId = 3;
+      const q = new Query({
+        update: ['name', 'age'],
+        table: 'users'
+      });
+      const res = await q.updateOne(driver, {id: userId, name: 'Aging', age: 53});
+      assert.strictEqual(res.id, userId);
+      assert.strictEqual(res.name, 'Aging');
+      assert.strictEqual(res.age, 53);
 
       const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).getAll(driver);
       assert.strictEqual(unaffected.length, 1);

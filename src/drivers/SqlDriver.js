@@ -25,8 +25,13 @@ class SqlDriver extends Driver {
   }
 
   createOneSQL(table, fields, _pk, obj) {
-    const sql = `INSERT INTO \`${table}\` (${fields.map(f => '`' + f + '`').join(', ')}) VALUES (${fields.map(() => '?').join(', ')})`;
-    return [sql, fields.map(f => obj[f])];
+    if (!(obj instanceof Array)) {
+      obj = [obj];
+    }
+    const singleSql = `(${fields.map(() => '?').join(', ')})`;
+    const sql = `INSERT INTO \`${table}\` (${fields.map(f => '`' + f + '`').join(', ')}) VALUES ${obj.map(() => singleSql).join(', ')}`;
+    const values = obj.map(o => fields.map(f => o[f])).reduce((prev, cur) => prev.concat(cur), []);
+    return [sql, values];
   }
 
   updateOneSQL(table, fields, _pk, obj) {
