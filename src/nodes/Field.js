@@ -1,3 +1,4 @@
+const RTDSError = require('../RTDSError');
 const QueryNode = require('./QueryNode');
 
 /**
@@ -51,7 +52,7 @@ class Field extends QueryNode {
     if (typeof q === 'object') {
       return new Field({ table, field: Object.keys(q)[0], as: Object.values(q)[0]});
     }
-    throw new Error(`Unable to parse a field ${JSON.stringify(q)}`);
+    throw new RTDSError(`Unable to parse a field ${JSON.stringify(q)}`);
   }
 }
 

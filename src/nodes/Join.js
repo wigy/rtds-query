@@ -1,3 +1,4 @@
+const RTDSError = require('../RTDSError');
 const QueryNode = require('./QueryNode');
 const JoinField = require('./JoinField');
 
@@ -13,10 +14,10 @@ const JoinField = require('./JoinField');
 class Join extends QueryNode {
   constructor(q) {
     if (!q.type) {
-      throw new Error(`Join type missing in query ${JSON.stringify(q)}`);
+      throw new RTDSError(`Join type missing in query ${JSON.stringify(q)}`);
     }
     if (!q.table) {
-      throw new Error(`Join table missing in query ${JSON.stringify(q)}`);
+      throw new RTDSError(`Join table missing in query ${JSON.stringify(q)}`);
     }
 
     super({
@@ -37,7 +38,7 @@ class Join extends QueryNode {
       type: this.type,
       table: this.table,
       links: this.links.map(l => l.map(e => (e && e.toJSON) ? e.toJSON() : e))
-    }
+    };
     if (this.as) {
       ret.as = this.as;
     }
@@ -97,7 +98,7 @@ class Join extends QueryNode {
         ]];
         return new Join({ type: 'inner', links, table: q.table, as: q.as});
       }
-      throw new Error(`Unable to parse join ${JSON.stringify(q.join)}`);
+      throw new RTDSError(`Unable to parse join ${JSON.stringify(q.join)}`);
     }
 
     if (q.leftJoin) {
@@ -108,7 +109,7 @@ class Join extends QueryNode {
         ]];
         return new Join({ type: 'left', links, table: q.table, as: q.as});
       }
-      throw new Error(`Unable to parse left join ${JSON.stringify(q.leftJoin)}.`);
+      throw new RTDSError(`Unable to parse left join ${JSON.stringify(q.leftJoin)}.`);
     }
 
     return null;

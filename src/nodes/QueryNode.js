@@ -1,3 +1,5 @@
+const RTDSError = require('../RTDSError');
+
 // Running reference number counter.
 let ref = 0;
 
@@ -46,7 +48,7 @@ class QueryNode {
    * Get the meaningful name for this node.
    */
   getName() {
-    throw new Error(`A query node ${this.constructor.name} does not implement getName().`);
+    throw new RTDSError(`A query node ${this.constructor.name} does not implement getName().`);
   }
 
   /**
@@ -153,7 +155,7 @@ class QueryNode {
    * @returns {String}
    */
   createSQL(driver) {
-    throw new Error(`Creation not supported for ${this.constructor.name}.`);
+    throw new RTDSError(`Creation not supported for ${this.constructor.name}.`);
   }
 
   /**
@@ -162,7 +164,7 @@ class QueryNode {
    * @returns {String}
    */
   updateSQL(driver) {
-    throw new Error(`Updating not supported for ${this.constructor.name}.`);
+    throw new RTDSError(`Updating not supported for ${this.constructor.name}.`);
   }
 
   /**
@@ -171,7 +173,7 @@ class QueryNode {
    * @returns {String}
    */
   deleteSQL(driver) {
-    throw new Error(`Deleting not supported for ${this.constructor.name}.`);
+    throw new RTDSError(`Deleting not supported for ${this.constructor.name}.`);
   }
 
   /**
@@ -246,7 +248,7 @@ class QueryNode {
       return this.next.findScope(vars);
     } else {
       const missing = vars.filter(v => !scopeVars.has(v));
-      throw new Error(`Unable to find node with the variables ${missing.join(', ')}.`);
+      throw new RTDSError(`Unable to find node with the variables ${missing.join(', ')}.`);
     }
   }
 }

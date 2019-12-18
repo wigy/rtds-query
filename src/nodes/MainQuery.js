@@ -1,3 +1,4 @@
+const RTDSError = require('../RTDSError');
 const QueryNode = require('./QueryNode');
 
 /**
@@ -8,7 +9,7 @@ class MainQuery extends QueryNode {
    * Get fields targeted by the query.
    */
   getFields() {
-    throw new Error(`Not implemented getFields() in ${this.constructor.name}.`);
+    throw new RTDSError(`Not implemented getFields() in ${this.constructor.name}.`);
   }
 }
 

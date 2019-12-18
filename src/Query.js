@@ -1,4 +1,5 @@
 const clone = require('clone');
+const RTDSError = require('./RTDSError');
 const Formula = require('./Formula');
 const ContainerNode = require('./nodes/ContainerNode');
 const Select = require('./nodes/Select');
@@ -254,7 +255,7 @@ class Query {
     q = clone(q);
     if (q instanceof Array) {
       if (!q.length) {
-        throw new Error('Cannot construct query from empty array.');
+        throw new RTDSError('Cannot construct query from empty array.');
       }
       let i = 0;
       let ret = Query.parse(q[0]);
@@ -285,7 +286,7 @@ class Query {
     } else if (q.delete) {
       return Delete.parse(q);
     }
-    throw new Error(`Unable to parse query ${JSON.stringify(q)}`);
+    throw new RTDSError(`Unable to parse query ${JSON.stringify(q)}`);
   }
 }
 

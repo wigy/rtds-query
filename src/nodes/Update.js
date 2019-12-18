@@ -1,3 +1,4 @@
+const RTDSError = require('../RTDSError');
 const MainQuery = require('./MainQuery');
 
 /**
@@ -31,7 +32,7 @@ class Update extends MainQuery {
 
   updateSQL(driver, obj) {
     if (!(this.pk in obj)) {
-      throw new Error(`There is no pk ${JSON.stringify(this.pk)} for update in ${JSON.stringify(obj)}`);
+      throw new RTDSError(`There is no pk ${JSON.stringify(this.pk)} for update in ${JSON.stringify(obj)}`);
     }
     return driver.updateSQL(this.table, this.update, this.pk, obj);
   }

@@ -1,5 +1,6 @@
 const QueryNode = require('./QueryNode');
 const Parser = require('../Parser');
+const RTDSError = require('../RTDSError');
 
 /**
  * A where condition.
@@ -34,7 +35,7 @@ class Where extends QueryNode {
       return new Where({where: q});
     }
     // TODO: Support for object where like {name: 'This Name'}
-    throw new Error(`Unable to parse a where condition ${JSON.stringify(q)}`);
+    throw new RTDSError(`Unable to parse a where condition ${JSON.stringify(q)}`);
   }
 }
 

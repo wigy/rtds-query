@@ -1,4 +1,5 @@
 const MainQuery = require('./MainQuery');
+const RTDSError = require('../RTDSError');
 
 /**
  * Delete query.
@@ -30,7 +31,11 @@ class Update extends MainQuery {
   }
 
   deleteSQL(driver, obj) {
-    // TODO: Verify that fields for matching are defined in `this.delete`.
+    Object.keys(obj).forEach(k => {
+      if (!this.delete.includes(k)) {
+        throw new RTDSError(`A key '${k}' is not allowed as specifying the deletion.`);
+      }
+    });
     return driver.deleteSQL(this.table, obj);
   }
 

@@ -1,3 +1,4 @@
+const RTDSError = require('../RTDSError');
 const Field = require('./Field');
 
 /**
@@ -29,7 +30,7 @@ class JoinField extends Field {
         return getParentRef(obj.prev);
       }
       if (!obj.parent) {
-        throw new Error(`Invalid join reference ${this.table}.${this.field}.`);
+        throw new RTDSError(`Invalid join reference ${this.table}.${this.field}.`);
       }
       return getParentRef(obj.parent);
     };
@@ -60,7 +61,7 @@ class JoinField extends Field {
     if (typeof q === 'object') {
       return new JoinField({ table, field: Object.keys(q)[0], as: Object.values(q)[0]});
     }
-    throw new Error(`Unable to parse a field ${JSON.stringify(q)}`);
+    throw new RTDSError(`Unable to parse a field ${JSON.stringify(q)}`);
   }
 }
 

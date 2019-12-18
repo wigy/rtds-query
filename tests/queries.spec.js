@@ -760,5 +760,3 @@ describe('Queries', () => {
     });
   });
 });
-
-// TODO: We need also collection of tests for invalid queries throwing an exception.

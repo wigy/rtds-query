@@ -1,3 +1,5 @@
+const RTDSError = require('./RTDSError');
+
 /**
  * Base class for drivers.
  */
@@ -13,51 +15,51 @@ class Driver {
   }
 
   escapeSelect(table, variable, as = null) {
-    throw new Error(`Driver ${this.constructor.name} does not implement escapeSelect().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement escapeSelect().`);
   }
 
   escapeJoin(table, variable = null) {
-    throw new Error(`Driver ${this.constructor.name} does not implement escapeJoin().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement escapeJoin().`);
   }
 
   escapeFrom(table, as = null) {
-    throw new Error(`Driver ${this.constructor.name} does not implement escapeFrom().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement escapeFrom().`);
   }
 
   escapeWhere(variable) {
-    throw new Error(`Driver ${this.constructor.name} does not implement escapeWhere().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement escapeWhere().`);
   }
 
   createSQL(fields, pk, obj) {
-    throw new Error(`Driver ${this.constructor.name} does not implement createSQL().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement createSQL().`);
   }
 
   updateSQL(fields, pk, obj) {
-    throw new Error(`Driver ${this.constructor.name} does not implement updateSQL().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement updateSQL().`);
   }
 
   deleteSQL(fields, pk, obj) {
-    throw new Error(`Driver ${this.constructor.name} does not implement deleteSQL().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement deleteSQL().`);
   }
 
   async runSelectQuery(sql) {
-    throw new Error(`Driver ${this.constructor.name} does not implement runSelectQuery().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement runSelectQuery().`);
   }
 
   async runInsertQuery(sql, obj, pk) {
-    throw new Error(`Driver ${this.constructor.name} does not implement runInsertQuery().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement runInsertQuery().`);
   }
 
   async runUpdateQuery(sql, obj, pk) {
-    throw new Error(`Driver ${this.constructor.name} does not implement runUpdateQuery().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement runUpdateQuery().`);
   }
 
   async runDeleteQuery(sql, obj, pk) {
-    throw new Error(`Driver ${this.constructor.name} does not implement runDeleteQuery().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement runDeleteQuery().`);
   }
 
   async runQuery(sql) {
-    throw new Error(`Driver ${this.constructor.name} does not implement runQuery().`);
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement runQuery().`);
   }
 
   /**
@@ -79,7 +81,7 @@ class Driver {
       case 'sqlite:':
         return Driver.createSqlite(url);
       default:
-        throw new Error(`Driver for ${uri} not yet supported.`);
+        throw new RTDSError(`Driver for ${uri} not yet supported.`);
     }
   }
 

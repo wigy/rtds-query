@@ -1,3 +1,5 @@
+const RTDSError = require('./RTDSError');
+
 // Helper to do processing.
 const process = (map, obj) => {
   Object.keys(map).forEach(k => {
@@ -8,7 +10,7 @@ const process = (map, obj) => {
         }
         break;
       default:
-        throw new Error(`No such processing as '${map[k]}'.`);
+        throw new RTDSError(`No such processing as '${map[k]}'.`);
     }
   });
 
