@@ -146,6 +146,10 @@ class QueryNode {
     if (where.length) {
       sql += ` WHERE (${where.join(') AND (')})`;
     }
+    const limit = this.buildLimitSQL(driver);
+    if (limit) {
+      sql += ' ' + limit;
+    }
     return sql;
   }
 
@@ -201,6 +205,15 @@ class QueryNode {
    */
   buildWhereSQL(driver) {
     return this.next ? this.next.buildWhereSQL(driver) : [];
+  }
+
+  /**
+   * Construct a LIMIT part of SQL.
+   * @param {Driver} driver
+   * @returns {String|null}
+   */
+  buildLimitSQL(driver) {
+    return null;
   }
 
   /**

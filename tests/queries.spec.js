@@ -4,7 +4,7 @@ const path = require('path');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = false;
+const DEBUG = true;
 // If set, throw assertions.
 const ASSERT = true;
 
@@ -563,7 +563,7 @@ describe('Queries', () => {
       assert.strictEqual(q.root.getChain().length, 5);
     });
 
-    it('support `from` ans `as` as an alias', async () => {
+    it('support `from` and `as` as an alias', async () => {
       await test([
         {
           table: 'todos',
@@ -586,6 +586,20 @@ describe('Queries', () => {
       ],
       null,
       { todos: new Set([1, 2, 3, 4]), users: new Set([null, 3, 2])});
+    });
+  });
+
+  describe('Limits and orders', () => {
+    it('can limit number and order of search results', async() => {
+      await test({
+        table: 'users',
+        select: 'id',
+        limit: 2,
+        order: 'id'
+      }, [
+        { id: 1 },
+        { id: 2 }
+      ]);
     });
   });
 

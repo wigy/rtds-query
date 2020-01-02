@@ -3,6 +3,7 @@ const MainQuery = require('./MainQuery');
 const Field = require('./Field');
 const Join = require('./Join');
 const Where = require('./Where');
+const Limit = require('./Limit');
 
 /**
  * Select query.
@@ -26,7 +27,9 @@ class Select extends MainQuery {
       join: q.join || undefined,
       members: q.members || [],
       process: q.process || undefined,
-      where: q.where || undefined
+      where: q.where || undefined,
+      limit: q.limit || undefined,
+      order: q.order || undefined
     });
     for (const field of this.select) {
       this.addChild(field);
@@ -36,6 +39,9 @@ class Select extends MainQuery {
     }
     if (this.where) {
       this.where.forEach(w => this.addChild(w));
+    }
+    if (this.limit) {
+      this.addChild(this.limit);
     }
     if (this.members && this.members.length) {
       this.chain(this.members[0]);
@@ -121,6 +127,10 @@ class Select extends MainQuery {
     return ret;
   }
 
+  buildLimitSQL(driver) {
+    return this.limit ? this.limit.buildLimitSQL(driver) : null;
+  }
+
   /**
    * Append additional where condition.
    * @param {String} cond
@@ -148,16 +158,19 @@ class Select extends MainQuery {
     if (q.members && q.members.length) {
       q.members = q.members.map(m => Query.parse(m));
     }
-    if (q.where) {
+    if ('where' in q) {
       if (!(q.where instanceof Array)) {
         q.where = [q.where];
       }
       q.where = q.where.map(w => Where.parse(w));
     }
-    if (q.pk) {
+    if ('pk' in q) {
       if (typeof q.pk === 'string') {
         q.pk = [q.pk];
       }
+    }
+    if ('limit' in q) {
+      q.limit = Limit.parse(q.limit);
     }
     return new Select({
       table: q.table,
@@ -168,7 +181,9 @@ class Select extends MainQuery {
       members:
       q.members,
       process: q.process,
-      where: q.where
+      where: q.where,
+      limit: q.limit,
+      order: q.order
     });
   }
 }
