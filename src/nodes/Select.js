@@ -3,6 +3,7 @@ const MainQuery = require('./MainQuery');
 const Field = require('./Field');
 const Join = require('./Join');
 const Where = require('./Where');
+const Order = require('./Order');
 const Limit = require('./Limit');
 
 /**
@@ -16,6 +17,8 @@ const Limit = require('./Limit');
  * - `join` what join type is used to link this to previous table unless first
  * - `members` additional Select nodes to treat as object members of the result lines
  * - `[where]` array of conditions attached if any
+ * - `[order]` order conditions if any
+ * - `[limit]` limit condition if any
  */
 class Select extends MainQuery {
   constructor(q) {
@@ -28,8 +31,8 @@ class Select extends MainQuery {
       members: q.members || [],
       process: q.process || undefined,
       where: q.where || undefined,
-      limit: q.limit || undefined,
-      order: q.order || undefined
+      order: q.order || undefined,
+      limit: q.limit || undefined
     });
     for (const field of this.select) {
       this.addChild(field);
@@ -49,6 +52,9 @@ class Select extends MainQuery {
       for (let i = 1; i < this.members.length; i++) {
         this.members[i - 1].chain(this.members[i]);
       }
+    }
+    if (this.order) {
+      this.addChild(this.order);
     }
   }
 
@@ -168,6 +174,9 @@ class Select extends MainQuery {
       if (typeof q.pk === 'string') {
         q.pk = [q.pk];
       }
+    }
+    if ('order' in q) {
+      q.order = Order.parse(q.order, q.table);
     }
     if ('limit' in q) {
       q.limit = Limit.parse(q.limit);

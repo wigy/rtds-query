@@ -30,10 +30,9 @@ class Limit extends QueryNode {
 
   /**
    * Convert query descriptor to Limit instance.
-   * @param {String|Object} q
-   * @param {String|null} table
+   * @param {Number} q
    */
-  static parse(q, table = null) {
+  static parse(q) {
     if (typeof q === 'number') {
       if (q <= 0) {
         throw new RTDSError(`Invalid limit ${q}.`);

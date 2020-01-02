@@ -20,7 +20,7 @@ describe('Catches invalid queries', () => {
     });
   });
 
-  describe.only('Limits', () => {
+  describe('Limits', () => {
     it('are denied if zero or negative', () => {
       assert.throws(
         () => Query.parse({

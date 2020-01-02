@@ -601,6 +601,18 @@ describe('Queries', () => {
         { id: 2 }
       ]);
     });
+
+    it.only('can limit number and order descending of search results', async() => {
+      await test({
+        table: 'users',
+        select: 'id',
+        limit: 2,
+        order: '-id'
+      }, [
+        { id: 2 },
+        { id: 1 }
+      ]);
+    });
   });
 
   describe('Search queries', () => {
