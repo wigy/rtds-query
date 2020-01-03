@@ -18,6 +18,10 @@ class Order extends QueryNode {
     return 'order';
   }
 
+  buildOrderSQL(driver) {
+    return this.order.map(o => o.buildOrderSQL(driver));
+  }
+
   /**
    * Convert query descriptor to Order instance.
    * @param {String|String[]} q

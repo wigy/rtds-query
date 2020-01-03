@@ -51,6 +51,10 @@ class SqlDriver extends Driver {
   escapeWhere(variable) {
     return '`' + variable.split('.').join('`.`') + '`';
   }
+
+  escapeOrder(table, variable) {
+    return `\`${table}\`.\`${variable}\``;
+  }
 }
 
 module.exports = SqlDriver;

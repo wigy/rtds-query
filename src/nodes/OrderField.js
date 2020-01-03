@@ -11,11 +11,12 @@ const Field = require('./Field');
  */
 class OrderField extends Field {
   constructor(q) {
-    super({ table: q.table, field: q.field, reverse: q.reverse});
+    super({ table: q.table, field: q.field });
+    this.reverse = q.reverse || false;
   }
 
   getFullName() {
-    return this.table + '.' + this.field;
+    return (this.reverse ? '-' : '+') + this.table + '.' + this.field;
   }
 
   getName() {
@@ -36,6 +37,11 @@ class OrderField extends Field {
       return getParentRef(obj.parent);
     };
     return getParentRef(this.parent.parent);
+  }
+
+  buildOrderSQL(driver) {
+    const dir = this.reverse ? ' DESC' : '';
+    return driver.escapeOrder(this.table + this.getRef(), this.field) + dir;
   }
 
   /**

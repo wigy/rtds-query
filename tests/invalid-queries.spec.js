@@ -39,5 +39,26 @@ describe('Catches invalid queries', () => {
         new RTDSError('Invalid limit -1.')
       );
     });
+
+    it('are denied if more than one defined', () => {
+      assert.throws(
+        () => Query.parse([
+          {
+            table: 'users',
+            order: ['-age'],
+            select: ['age'],
+            limit: 2
+          },
+          {
+            table: 'projects',
+            order: ['name'],
+            select: ['name'],
+            limit: 3
+          }
+        ]).buildLimitSQL(driver),
+        new RTDSError('Too many limits declared.')
+      );
+    });
+
   });
 });

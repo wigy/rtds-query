@@ -133,6 +133,17 @@ class Select extends MainQuery {
     return ret;
   }
 
+  buildOrderSQL(driver) {
+    let ret = [];
+    if (this.order) {
+      ret = this.order.buildOrderSQL(driver);
+    }
+    if (this.next) {
+      ret = ret.concat(this.next.buildOrderSQL(driver));
+    }
+    return ret;
+  }
+
   buildLimitSQL(driver) {
     return this.limit ? this.limit.buildLimitSQL(driver) : null;
   }

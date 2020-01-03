@@ -30,6 +30,10 @@ class Driver {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement escapeWhere().`);
   }
 
+  escapeOrder(variable) {
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement escapeOrder().`);
+  }
+
   createSQL(fields, pk, obj) {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement createSQL().`);
   }

@@ -4,7 +4,7 @@ const path = require('path');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = true;
+const DEBUG = false;
 // If set, throw assertions.
 const ASSERT = true;
 
@@ -601,16 +601,46 @@ describe('Queries', () => {
         { id: 2 }
       ]);
     });
+    // TODO: Fill in tests to check affected IDs.
 
-    it.only('can limit number and order descending of search results', async() => {
+    it('can limit number and order descending of search results', async() => {
       await test({
         table: 'users',
         select: 'id',
         limit: 2,
         order: '-id'
       }, [
-        { id: 2 },
-        { id: 1 }
+        { id: 3 },
+        { id: 2 }
+      ]);
+    });
+
+    it('can order more than one table and still use limit', async() => {
+      await test([
+        {
+          table: 'users',
+          order: ['-age'],
+          select: ['age']
+        },
+        {
+          table: 'projects',
+          order: ['name'],
+          select: ['name'],
+          limit: 3
+        }
+      ], [
+        {
+          age: 44,
+          name: 'Busy Project'
+        },
+        {
+          age: 44,
+          name: 'Empty Project'
+        },
+        {
+          age: 33,
+          name: 'Busy Project'
+        }
       ]);
     });
   });

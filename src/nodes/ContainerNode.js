@@ -1,11 +1,27 @@
 const QueryNode = require('./QueryNode');
+const RTDSError = require('../RTDSError');
 
 /**
  * A node for grouping other nodes.
+ *
+ * Parameters:
+ * - `chidlren` a list of sub-nodes
  */
 class ContainerNode extends QueryNode {
   getName() {
     return null;
+  }
+
+  buildOrderSQL(driver) {
+    return this.children.reduce((prev, cur) => prev.concat(cur.buildOrderSQL(driver)), []);
+  }
+
+  buildLimitSQL(driver) {
+    const ret = this.children.map(c => c.buildLimitSQL(driver)).filter(s => s !== null);
+    if (ret.length > 1) {
+      throw new RTDSError('Too many limits declared.');
+    }
+    return ret.length ? ret[0] : null;
   }
 
   getPostFormula() {

@@ -146,6 +146,10 @@ class QueryNode {
     if (where.length) {
       sql += ` WHERE (${where.join(') AND (')})`;
     }
+    const order = this.buildOrderSQL(driver);
+    if (order.length) {
+      sql += ' ORDER BY ' + order.join(', ');
+    }
     const limit = this.buildLimitSQL(driver);
     if (limit) {
       sql += ' ' + limit;
@@ -205,6 +209,15 @@ class QueryNode {
    */
   buildWhereSQL(driver) {
     return this.next ? this.next.buildWhereSQL(driver) : [];
+  }
+
+  /**
+   * Construct an array of ORDER parts for SQL.
+   * @param {Driver} driver
+   * @returns {String[]}
+   */
+  buildOrderSQL(driver) {
+    return [];
   }
 
   /**
