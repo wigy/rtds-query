@@ -108,7 +108,6 @@ class Query {
         obj[name][index] = data[i][k];
       }
 
-      // TODO: We don't support multiple PKs since Sqlite does not. Remove unnecessary code.
       // Trim down singletons and collect PKs by table.
       Object.entries(obj).forEach(([name, pks]) => {
         const [, table] = name.split('/');
@@ -140,15 +139,16 @@ class Query {
     if (where === null) {
       where = '';
     }
-    if (!this.sql[where]) {
+    const cacheKey = `${pkOnly ? 'PK|' : ''}${where}`;
+    if (!this.sql[cacheKey]) {
       if (where !== '') {
         const q = this.withWhere(where);
-        this.sql[where] = q.selectSQL(driver, null, {pkOnly});
+        this.sql[cacheKey] = q.selectSQL(driver, null, {pkOnly});
       } else {
-        this.sql[where] = this.root.selectSQL(driver, {pkOnly});
+        this.sql[cacheKey] = this.root.selectSQL(driver, {pkOnly});
       }
     }
-    return this.sql[where];
+    return this.sql[cacheKey];
   }
 
   /**
