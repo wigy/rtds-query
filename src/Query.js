@@ -139,7 +139,7 @@ class Query {
     if (where === null) {
       where = '';
     }
-    const cacheKey = `${pkOnly ? 'PK|' : ''}${where}`;
+    const cacheKey = `${pkOnly ? 'PK|' : ''}${JSON.stringify(where)}`;
     if (!this.sql[cacheKey]) {
       if (where !== '') {
         const q = this.withWhere(where);

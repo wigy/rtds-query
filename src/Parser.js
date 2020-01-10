@@ -916,6 +916,10 @@ class Parser {
    * @param {String} cond
    */
   static parse(cond) {
+    if (typeof cond !== 'string') {
+      const Where = require('./nodes/Where');
+      cond = Where.parse(cond).where;
+    }
     const r = /\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)+)\b/;
     const parts = cond.split(r);
     const ret = [];

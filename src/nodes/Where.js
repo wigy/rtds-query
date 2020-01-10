@@ -34,7 +34,9 @@ class Where extends QueryNode {
     if (typeof q === 'string') {
       return new Where({where: q});
     }
-    // TODO: Support for object where like {name: 'This Name'}
+    if (q instanceof Object) {
+      return Where.parse('(' + Object.entries(q).map(([k, v]) => `${k} = ${v}`).join(' AND ') + ')');
+    }
     throw new RTDSError(`Unable to parse a where condition ${JSON.stringify(q)}`);
   }
 }
