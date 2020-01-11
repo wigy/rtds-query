@@ -1,4 +1,5 @@
 const MainQuery = require('./MainQuery');
+const RTDSError = require('../RTDSError');
 
 /**
  * Insert query.
@@ -30,6 +31,11 @@ class Insert extends MainQuery {
   }
 
   createSQL(driver, obj) {
+    (obj instanceof Array ? obj : [obj]).forEach(o => Object.keys(o).forEach(key => {
+      if (!this.insert.includes(key)) {
+        throw new RTDSError(`A field '${key}' is not defined in insertion query for '${this.table}'.`);
+      }
+    }));
     return driver.createSQL(this.table, this.insert, this.pk, obj);
   }
 

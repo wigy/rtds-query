@@ -31,9 +31,19 @@ class Update extends MainQuery {
   }
 
   updateSQL(driver, obj) {
+    // TODO: Array formatted PK handling.
     if (!(this.pk in obj)) {
       throw new RTDSError(`There is no pk ${JSON.stringify(this.pk)} for update in ${JSON.stringify(obj)}`);
     }
+    (obj instanceof Array ? obj : [obj]).forEach(o => Object.keys(o).forEach(key => {
+      // TODO: Array format pk.
+      if (key === this.pk) {
+        return;
+      }
+      if (!this.update.includes(key)) {
+        throw new RTDSError(`A field '${key}' is not defined in update query for '${this.table}'.`);
+      }
+    }));
     return driver.updateSQL(this.table, this.update, this.pk, obj);
   }
 

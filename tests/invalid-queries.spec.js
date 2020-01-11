@@ -61,4 +61,30 @@ describe('Catches invalid queries', () => {
     });
 
   });
+
+  describe('Validity', () => {
+    it('detects illegal insertion', async () => {
+      const q = new Query({
+        table: 'users',
+        insert: ['name']
+      });
+
+      assert.throws(
+        () => q.createSQL(driver, {address: 'No way'}),
+        new RTDSError("A field 'address' is not defined in insertion query for 'users'.")
+      );
+    });
+
+    it('detects illegal update', async () => {
+      const q = new Query({
+        table: 'users',
+        update: ['name']
+      });
+
+      assert.throws(
+        () => q.updateSQL(driver, {id: 99, address: 'No way'}),
+        new RTDSError("A field 'address' is not defined in update query for 'users'.")
+      );
+    });
+  });
 });
