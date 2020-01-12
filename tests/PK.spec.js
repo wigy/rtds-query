@@ -41,4 +41,34 @@ describe('PK', () => {
       {id: 5, k: 5, m: 'A'}
     ]);
   });
+
+  it('can check primary key existence', () => {
+    assert.strictEqual(PK.hasPK(null, {id: 1}), true);
+    assert.strictEqual(PK.hasPK(null, {id: 0}), true);
+    assert.strictEqual(PK.hasPK(null, {id: ''}), true);
+    assert.strictEqual(PK.hasPK(null, {id: null}), true);
+    assert.strictEqual(PK.hasPK(null, {idx: 1}), false);
+
+    assert.strictEqual(PK.hasPK('foo', {foo: 1}), true);
+    assert.strictEqual(PK.hasPK('foo', {foo: 0}), true);
+    assert.strictEqual(PK.hasPK('foo', {foo: ''}), true);
+    assert.strictEqual(PK.hasPK('foo', {foo: null}), true);
+    assert.strictEqual(PK.hasPK('foo', {idx: 1}), false);
+
+    assert.strictEqual(PK.hasPK(['foo', 'bar'], {foo: 1, bar: 0}), true);
+    assert.strictEqual(PK.hasPK(['foo', 'bar'], {foo: 0, bar: ''}), true);
+    assert.strictEqual(PK.hasPK(['foo', 'bar'], {foo: ''}), false);
+    assert.strictEqual(PK.hasPK(['foo', 'bar'], {bar: null}), false);
+    assert.strictEqual(PK.hasPK(['foo', 'bar'], {idx: 1}), false);
+  });
+
+  it('can recognize primary key', () => {
+    assert.strictEqual(PK.isPK(null, 'id'), true);
+    assert.strictEqual(PK.isPK(null, 'idx'), false);
+    assert.strictEqual(PK.isPK('x', 'x'), true);
+    assert.strictEqual(PK.isPK('x', 'idx'), false);
+    assert.strictEqual(PK.isPK(['x', 'y'], 'x'), true);
+    assert.strictEqual(PK.isPK(['x', 'y'], 'y'), true);
+    assert.strictEqual(PK.isPK(['x', 'y'], 'z'), false);
+  });
 });
