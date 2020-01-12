@@ -10,6 +10,16 @@ class SqliteDriver extends SqlDriver {
     this.db = new sqlite3.Database(url.pathname);
   }
 
+  async getTables() {
+    const data = await this.runSelectQuery('SELECT * FROM sqlite_master WHERE type = "table" AND name NOT LIKE "sqlite%"');
+    return data.map(t => t.tbl_name);
+  }
+
+  async getColumns(table) {
+    const data = await this.runSelectQuery(`PRAGMA table_info(\`${table}\`)`);
+    return data.map(f => f.name);
+  }
+
   async runSelectQuery(sql) {
     return new Promise((resolve, reject) => {
       this.db.all(sql, function(err, rows) {

@@ -12,6 +12,32 @@ class Driver {
   constructor(url) {
     this.url = url;
     this.db = null;
+    this.tables = null;
+  }
+
+  /**
+   * Collect or set information of all tables.
+   */
+  async initialize(init = null) {
+    if (init !== null) {
+      this.tables = init;
+      return;
+    }
+    this.tables = {};
+    for (const table of await this.getTables()) {
+      this.tables[table] = new Set();
+      for (const field of await this.getColumns(table)) {
+        this.tables[table].add(field);
+      }
+    }
+  }
+
+  getTables() {
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement getTables().`);
+  }
+
+  getColumns(table) {
+    throw new RTDSError(`Driver ${this.constructor.name} does not implement getColumns().`);
   }
 
   escapeSelect(table, variable, as = null) {

@@ -19,7 +19,7 @@ const readSql = async (driver, filePath) => {
   }
 };
 
-describe('Queries', () => {
+describe.only('Queries', () => {
   let driver;
 
   /**
@@ -30,6 +30,7 @@ describe('Queries', () => {
     driver = Driver.create(DATABASE_URL);
 
     await readSql(driver, path.join(__dirname, 'migrations/init.sql'));
+    await driver.initialize();
 
     await new Query({
       insert: ['id', 'name', 'age'],
