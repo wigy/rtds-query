@@ -25,7 +25,7 @@ class Select extends MainQuery {
     super({
       table: q.table,
       as: q.as || undefined,
-      pk: q.pk || ['id'], // TODO: We don't support multiple PKs since Sqlite does not. Remove unnecessary code.
+      pk: q.pk || ['id'],
       select: q.select,
       join: q.join || undefined,
       members: q.members || [],
@@ -99,6 +99,8 @@ class Select extends MainQuery {
 
   buildSelectSQL(driver, {pkOnly = false} = {}) {
     const Query = require('../Query');
+
+    driver.verifyTableColumns(this.table, this.select.map(s => s.field));
 
     let ret = this.select.reduce((prev, cur) => {
       if (pkOnly && !Query.PK_REGEX.test(cur.as)) {

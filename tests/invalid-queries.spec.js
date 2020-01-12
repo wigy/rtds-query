@@ -6,6 +6,12 @@ describe('Catches invalid queries', () => {
 
   const driver = Driver.create('sql://');
 
+  before(async () => {
+    await driver.initialize({
+      users: new Set(['id', 'name'])
+    });
+  });
+
   describe('Search queries', () => {
     it('constructs correctly queries', () => {
       const q = new Query({
@@ -86,5 +92,31 @@ describe('Catches invalid queries', () => {
         new RTDSError("A field 'address' is not defined in update query for 'users'.")
       );
     });
+  });
+
+  describe('Column checking', () => {
+    it('detects bad columns in select', async () => {
+      const q = new Query({
+        table: 'users',
+        select: ['foo']
+      });
+      assert.throws(
+        () => q.selectSQL(driver),
+        new RTDSError("A table 'users' has no column 'foo'.")
+      );
+    });
+
+    it('detects bad table in select', async () => {
+      const q = new Query({
+        table: 'strange',
+        select: ['id']
+      });
+      assert.throws(
+        () => q.selectSQL(driver),
+        new RTDSError("No such table 'strange'.")
+      );
+    });
+
+    // TODO: Check delete, update and create as well.
   });
 });

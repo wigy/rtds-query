@@ -5,6 +5,13 @@ describe('Query (and QueryNode) class', () => {
 
   const driver = Driver.create('sql://');
 
+  before(async () => {
+    driver.initialize({
+      users: new Set(['id', 'name', 'age']),
+      tools: new Set(['id', 'name'])
+    });
+  });
+
   describe('Search queries', () => {
     it('constructs correctly queries', () => {
       const q = new Query([{

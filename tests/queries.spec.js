@@ -19,7 +19,7 @@ const readSql = async (driver, filePath) => {
   }
 };
 
-describe.only('Queries', () => {
+describe('Queries', () => {
   let driver;
 
   /**

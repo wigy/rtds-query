@@ -30,6 +30,26 @@ class Driver {
         this.tables[table].add(field);
       }
     }
+
+  }
+
+  /**
+   * Check that all columns exist and if not, throw an error.
+   * @param {String} table
+   * @param {String[]} columns
+   */
+  verifyTableColumns(table, columns) {
+    if (!this.tables) {
+      throw new RTDSError('Cannot verify tables, since driver not initialized.');
+    }
+    if (!this.tables[table]) {
+      throw new RTDSError(`No such table '${table}'.`);
+    }
+    columns.forEach(c => {
+      if (!this.tables[table].has(c)) {
+        throw new RTDSError(`A table '${table}' has no column '${c}'.`);
+      }
+    });
   }
 
   getTables() {
