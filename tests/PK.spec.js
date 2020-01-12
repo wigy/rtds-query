@@ -1,7 +1,7 @@
 const assert = require('assert');
 const { PK } = require('../src');
 
-describe.only('PK', () => {
+describe('PK', () => {
   it('can retrieve value', () => {
     assert.deepStrictEqual(PK.getPK(undefined, {id: 2}), 2);
     assert.deepStrictEqual(PK.getPK(null, {id: 2}), 2);

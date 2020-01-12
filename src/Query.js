@@ -169,20 +169,6 @@ class Query {
   }
 
   /**
-   * Execute a query to retrieve first match for the selected query.
-   * @param {Driver} driver
-   * @param {String} where
-   * @param {Boolean} [param3.noPostProcessing]
-   * @param {Boolean} [param3.pkOnly]
-   * @returns {Object|null}
-   */
-  async getOne(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
-    // TODO: Could limit results to one once supported.
-    const data = await this.select(driver, where, {noPostProcessing, pkOnly});
-    return data && data.length ? data[0] : null;
-  }
-
-  /**
    * Construct SQL for creating one new instance.
    * @param {Driver} driver
    * @param {Object} obj
