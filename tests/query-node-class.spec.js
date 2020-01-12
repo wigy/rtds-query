@@ -26,7 +26,7 @@ describe('Query (and QueryNode) class', () => {
       }]);
       assert.deepStrictEqual(q.toJSON(), {
         node: 'ContainerNode',
-        chidlren: [
+        children: [
           {
             node: 'Select',
             table: 'users',

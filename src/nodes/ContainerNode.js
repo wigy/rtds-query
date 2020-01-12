@@ -5,7 +5,7 @@ const RTDSError = require('../RTDSError');
  * A node for grouping other nodes.
  *
  * Parameters:
- * - `chidlren` a list of sub-nodes
+ * - `children` a list of sub-nodes
  */
 class ContainerNode extends QueryNode {
   getName() {
@@ -47,7 +47,7 @@ class ContainerNode extends QueryNode {
   toJSON() {
     return {
       node: this.constructor.name,
-      chidlren: this.children.map(c => c.toJSON())
+      children: this.children.map(c => c.toJSON())
     };
   }
 }
