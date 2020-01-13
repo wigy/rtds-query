@@ -26,7 +26,7 @@ class Select extends MainQuery {
     super({
       table: q.table,
       as: q.as || undefined,
-      pk: q.pk || ['id'],
+      pk: q.pk || ['id'], // TODO: Change to null.
       select: q.select,
       join: q.join || undefined,
       members: q.members || [],
@@ -83,7 +83,7 @@ class Select extends MainQuery {
     if (this.as) {
       ret += ` as ${this.as}`;
     }
-    if (this.pk.length !== 1 || this.pk[0] !== 'id') {
+    if (this.pk.length !== 1) {
       ret += ` (PK: ${this.pk.join(' + ')})`;
     }
     return ret;
@@ -97,6 +97,9 @@ class Select extends MainQuery {
   getPostFormula() {
     const ret = {};
     ret.flat = this.select.reduce((prev, cur) => ({...prev, [cur.as]: cur.getAsName()}), {});
+
+    // TODO: Set ret.pk from this.pk once set and it is defaulting to null.
+
     if (this.members.length) {
       ret.objects = {};
       this.members.forEach(m => {
@@ -104,10 +107,9 @@ class Select extends MainQuery {
       });
     }
     if (this.collections.length) {
-      ret.objects = {};
+      ret.arrays = {};
       this.collections.forEach(m => {
-        console.log(m.getName(), m.getPostFormula());
-        // ret.objects[m.getName()] = m.getPostFormula();
+        ret.arrays[m.getName()] = m.getPostFormula();
       });
     }
     if (this.process) {

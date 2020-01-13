@@ -69,7 +69,50 @@ describe('Formula class', () => {
     ]);
   });
 
-  // TODO: Test for explicit keys.
+  it('can post process collection data with explicit key', () => {
+    const formula = new Formula({
+      flat: { number: 'number', name: 'name', title: 'title' },
+      pk: 'number',
+      arrays: {
+        comments: {
+          flat: {id: 'comments.id', comment: 'comments.comment'}
+        }
+      }
+    });
+    const data = [
+      { number: 10, name: 'AA', title: 'A', 'comments.id': 1, 'comments.comment': 'C1' },
+      { number: 10, name: 'AA', title: 'A', 'comments.id': 2, 'comments.comment': 'C2' },
+      { number: 20, name: 'BB', title: 'B', 'comments.id': 3, 'comments.comment': 'C3' },
+      { number: 30, name: 'CC', title: 'C', 'comments.id': null, 'comments.comment': null }
+    ];
+    assert.deepStrictEqual(formula.process(data), [
+      {
+        number: 10,
+        name: 'AA',
+        title: 'A',
+        comments: [
+          { id: 1, comment: 'C1' },
+          { id: 2, comment: 'C2' }
+        ]
+      },
+      {
+        number: 20,
+        name: 'BB',
+        title: 'B',
+        comments: [
+          { id: 3, comment: 'C3' }
+        ]
+      },
+      {
+        number: 30,
+        name: 'CC',
+        title: 'C',
+        comments: [
+        ]
+      }
+    ]);
+  });
+
   // TODO: Test for explicit multi-keys.
 
   it('can be constructed from simple query', () => {
@@ -134,4 +177,25 @@ describe('Formula class', () => {
       objects: { creator: {flat: { name: 'creator.name' } } }
     }));
   });
+
+  it('can be constructed from query with collections', () => {
+    const q = new Query({
+      table: 'users',
+      select: ['name'],
+      collections: [
+        {
+          table: 'comments',
+          select: ['comment'],
+          join: ['users.id', 'comments.userId']
+        }
+      ]
+    });
+    assert.deepStrictEqual(q.getPostFormula(), new Formula({
+      flat: { name: 'name' },
+      arrays: { comments: { flat: { comment: 'comments.comment' } } }
+    }));
+  });
+
+  // TODO: Test for explicit query PKs.
+  // TODO: Test for multiple query PKs.
 });

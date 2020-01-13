@@ -31,7 +31,7 @@ const entry = (line, formula, arrays) => {
     Object.assign(ret, value);
   }
   if (formula.arrays) {
-    const pk = PK.getPKasKey(line.pk, ret);
+    const pk = PK.getPKasKey(formula.pk, ret);
     Object.entries(formula.arrays).map(([k, v]) => {
       if (!arrays[k]) {
         arrays[k] = {};

@@ -4,9 +4,9 @@ const path = require('path');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = true;
+const DEBUG = false;
 // If set, throw assertions.
-const ASSERT = false;
+const ASSERT = true;
 
 // Helper to read in SQL-file.
 const readSql = async (driver, filePath) => {
@@ -532,6 +532,26 @@ describe('Queries', () => {
           ]
         }
       ], [
+        {
+          id: 1,
+          name: 'Alice A',
+          comments: [
+            { id: 1, comment: 'A' },
+            { id: 3, comment: 'C' }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Bob B',
+          comments: [
+            { id: 2, comment: 'B' }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Carl C',
+          comments: []
+        }
       ]);
     });
   });

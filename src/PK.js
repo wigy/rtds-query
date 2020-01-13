@@ -42,13 +42,13 @@ const getPKasKey = (pk, obj) => {
   // TODO: No test for this function.
   if (pk === undefined || pk === null) {
     if (obj.id === undefined) {
-      throw new Error(`Unable to get primary key for object ${JSON.stringify(obj)}.`);
+      throw new Error(`Unable to get primary key 'id' for object ${JSON.stringify(obj)}.`);
     }
     return 'S|' + JSON.stringify(obj.id);
   }
   if (typeof pk === 'string') {
     if (obj[pk] === undefined) {
-      throw new Error(`Unable to get primary key for object ${JSON.stringify(obj)}.`);
+      throw new Error(`Unable to get primary key '${pk}' for object ${JSON.stringify(obj)}.`);
     }
     return 'S|' + JSON.stringify(obj[pk]);
   }
