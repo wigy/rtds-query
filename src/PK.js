@@ -21,6 +21,7 @@ const PKs = (pk) => {
  * Get primary key value from the object.
  *
  * @param {undefined|null|String|String[]} pk
+ * @param {Object}
  */
 const getPK = (pk, obj) => {
   if (pk === undefined || pk === null) {
@@ -30,6 +31,33 @@ const getPK = (pk, obj) => {
     return obj[pk];
   }
   return pk.map(k => obj[k]);
+};
+
+/**
+ * Get primary key value from the object and convert it to unique string.
+ * @param {undefined|null|String|String[]} pk
+ * @param {Object}
+ */
+const getPKasKey = (pk, obj) => {
+  // TODO: No test for this function.
+  if (pk === undefined || pk === null) {
+    if (obj.id === undefined) {
+      throw new Error(`Unable to get primary key for object ${JSON.stringify(obj)}.`);
+    }
+    return 'S|' + JSON.stringify(obj.id);
+  }
+  if (typeof pk === 'string') {
+    if (obj[pk] === undefined) {
+      throw new Error(`Unable to get primary key for object ${JSON.stringify(obj)}.`);
+    }
+    return 'S|' + JSON.stringify(obj[pk]);
+  }
+  return 'A|' + pk.map(k => {
+    if (obj[k] === undefined) {
+      throw new Error(`Unable to get primary key part '${k}' for object ${JSON.stringify(obj)}.`);
+    }
+    return JSON.stringify(obj[k]);
+  }).join('|');
 };
 
 /**
@@ -71,6 +99,15 @@ const hasPK = (pk, obj) => {
 };
 
 /**
+ * Check if the object is equipped with primary key fields and they are not null.
+ * @param {undefined|null|String|String[]} pk
+ * @param {Object} obj
+ */
+const hasNonNullPK = (pk, obj) => {
+  return PKs(pk).every(k => (k in obj) && obj[k] !== null);
+};
+
+/**
  * Check of the field name is a primary key.
  * @param {undefined|null|String|String[]} pk
  * @param {Object} key
@@ -91,7 +128,9 @@ const isPK = (pk, key) => {
 module.exports = {
   comparePK,
   getPK,
+  getPKasKey,
   hasPK,
+  hasNonNullPK,
   isPK,
   sorterPK
 };

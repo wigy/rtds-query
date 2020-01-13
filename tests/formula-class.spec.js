@@ -5,7 +5,7 @@ describe('Formula class', () => {
   /**
    * Tests.
    */
-  it('can post process data', () => {
+  it('can post process member data', () => {
     const formula = new Formula({
       flat: { id: 'id', name: 'name', title: 'title' },
       objects: {
@@ -25,6 +25,52 @@ describe('Formula class', () => {
       { id: 30, name: 'CC', title: 'C', users: { id: 3, creator: 'U3' } }
     ]);
   });
+
+  it('can post process collection data', () => {
+    const formula = new Formula({
+      flat: { id: 'id', name: 'name', title: 'title' },
+      arrays: {
+        comments: {
+          flat: {id: 'comments.id', comment: 'comments.comment'}
+        }
+      }
+    });
+    const data = [
+      { id: 10, name: 'AA', title: 'A', 'comments.id': 1, 'comments.comment': 'C1' },
+      { id: 10, name: 'AA', title: 'A', 'comments.id': 2, 'comments.comment': 'C2' },
+      { id: 20, name: 'BB', title: 'B', 'comments.id': 3, 'comments.comment': 'C3' },
+      { id: 30, name: 'CC', title: 'C', 'comments.id': null, 'comments.comment': null }
+    ];
+    assert.deepStrictEqual(formula.process(data), [
+      {
+        id: 10,
+        name: 'AA',
+        title: 'A',
+        comments: [
+          { id: 1, comment: 'C1' },
+          { id: 2, comment: 'C2' }
+        ]
+      },
+      {
+        id: 20,
+        name: 'BB',
+        title: 'B',
+        comments: [
+          { id: 3, comment: 'C3' }
+        ]
+      },
+      {
+        id: 30,
+        name: 'CC',
+        title: 'C',
+        comments: [
+        ]
+      }
+    ]);
+  });
+
+  // TODO: Test for explicit keys.
+  // TODO: Test for explicit multi-keys.
 
   it('can be constructed from simple query', () => {
     const q = new Query({

@@ -4,9 +4,9 @@ const path = require('path');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = false;
+const DEBUG = true;
 // If set, throw assertions.
-const ASSERT = true;
+const ASSERT = false;
 
 // Helper to read in SQL-file.
 const readSql = async (driver, filePath) => {
@@ -514,7 +514,10 @@ describe('Queries', () => {
     });
   });
 
-  xdescribe('Collections', () => {
+  describe('Collections', () => {
+    // TODO: Collections of collections.
+    // TODO: Collections mixed with members.
+    // TODO: Multi-key collections.
     it('can collect members as an array', async () => {
       await test([
         {

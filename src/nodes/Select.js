@@ -16,6 +16,7 @@ const Limit = require('./Limit');
  * - `select` a list of members to select
  * - `join` what join type is used to link this to previous table unless first
  * - `members` additional Select nodes to treat as object members of the result lines
+ * - `collections` additional Select nodes to treat as collection of the result lines
  * - `[where]` array of conditions attached if any
  * - `[order]` order conditions if any
  * - `[limit]` limit condition if any
@@ -29,7 +30,8 @@ class Select extends MainQuery {
       select: q.select,
       join: q.join || undefined,
       members: q.members || [],
-      process: q.process || undefined,
+      collections: q.collections || [],
+      process: q.process || undefined, // TODO: What's this? Document or remove.
       where: q.where || undefined,
       order: q.order || undefined,
       limit: q.limit || undefined
@@ -46,11 +48,21 @@ class Select extends MainQuery {
     if (this.limit) {
       this.addChild(this.limit);
     }
+    let lastInChain = this;
     if (this.members && this.members.length) {
       this.chain(this.members[0]);
+      lastInChain = this.members[0];
       this.members.forEach(m => this.addChild(m));
       for (let i = 1; i < this.members.length; i++) {
         this.members[i - 1].chain(this.members[i]);
+        lastInChain = this.members[i - 1];
+      }
+    }
+    if (this.collections && this.collections.length) {
+      lastInChain.chain(this.collections[0]);
+      this.collections.forEach(m => this.addChild(m));
+      for (let i = 1; i < this.collections.length; i++) {
+        this.collections[i - 1].chain(this.collections[i]);
       }
     }
     if (this.order) {
@@ -89,6 +101,13 @@ class Select extends MainQuery {
       ret.objects = {};
       this.members.forEach(m => {
         ret.objects[m.getName()] = m.getPostFormula();
+      });
+    }
+    if (this.collections.length) {
+      ret.objects = {};
+      this.collections.forEach(m => {
+        console.log(m.getName(), m.getPostFormula());
+        // ret.objects[m.getName()] = m.getPostFormula();
       });
     }
     if (this.process) {
@@ -177,6 +196,9 @@ class Select extends MainQuery {
     if (q.members && q.members.length) {
       q.members = q.members.map(m => Query.parse(m));
     }
+    if (q.collections && q.collections.length) {
+      q.collections = q.collections.map(m => Query.parse(m));
+    }
     if ('where' in q) {
       if (!(q.where instanceof Array)) {
         q.where = [q.where];
@@ -200,8 +222,8 @@ class Select extends MainQuery {
       pk: q.pk,
       select,
       join,
-      members:
-      q.members,
+      members: q.members,
+      collections: q.collections,
       process: q.process,
       where: q.where,
       limit: q.limit,

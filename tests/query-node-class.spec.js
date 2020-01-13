@@ -37,6 +37,7 @@ describe('Query (and QueryNode) class', () => {
               { node: 'Field', table: 'users', field: 'age', as: 'years' }
             ],
             members: [],
+            collections: [],
             where: [{ node: 'Where', where: 'years = 21' }]
           },
           {
@@ -80,6 +81,7 @@ describe('Query (and QueryNode) class', () => {
               ]
             },
             members: [],
+            collections: [],
             where: [{ node: 'Where', where: 'id < 3' }]
           }
         ]
@@ -108,6 +110,7 @@ describe('Query (and QueryNode) class', () => {
           { node: 'Field', table: 'users', field: 'name', as: 'name' },
           { node: 'Field', table: 'users', field: 'age', as: 'age' }
         ],
+        collections: [],
         members: [
           {
             node: 'Select',
@@ -139,6 +142,7 @@ describe('Query (and QueryNode) class', () => {
               ]
             },
             members: [],
+            collections: [],
             where: [
               {
                 node: 'Where',
