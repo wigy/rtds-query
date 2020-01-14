@@ -4,7 +4,7 @@ const path = require('path');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = true;
+const DEBUG = false;
 // If set, throw assertions.
 const ASSERT = true;
 
@@ -516,8 +516,9 @@ describe('Queries', () => {
 
   describe('Collections', () => {
     // TODO: Collections of collections.
-    // TODO: Collections mixed with members.
-    // TODO: Multi-key collections.
+    // TODO: Members with collections.
+    // TODO: Multiple collections in single object.
+    // TODO: Alias 'as' support for collection.
     it('can collect members as an array', async () => {
       await test([
         {
@@ -555,6 +556,109 @@ describe('Queries', () => {
       ],
       null,
       { comments: new Set([1, 2, 3, null]), users: new Set([1, 3, 2]) });
+    });
+
+    it('can collect members as an array when having multiple keys', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['id', 'name'],
+          pk: ['id', 'name'],
+          collections: [
+            {
+              table: 'comments',
+              pk: 'comment',
+              select: ['id', 'comment'],
+              leftJoin: ['comments.userId', 'users.id']
+            }
+          ]
+        }
+      ], [
+        {
+          id: 1,
+          name: 'Alice A',
+          comments: [
+            { id: 1, comment: 'A' },
+            { id: 3, comment: 'C' }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Bob B',
+          comments: [
+            { id: 2, comment: 'B' }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Carl C',
+          comments: []
+        }
+      ],
+      null,
+      {
+        comments: new Set(['A', 'B', 'C', null]),
+        users: new Set([
+          [1, 'Alice A'],
+          [1, 'Alice A'],
+          [2, 'Bob B'],
+          [3, 'Carl C']
+        ])
+      });
+    });
+
+    it('can collect members mixed as an array and an object', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['id', 'name'],
+          collections: [
+            {
+              table: 'comments',
+              select: ['id', 'comment'],
+              leftJoin: ['comments.userId', 'users.id']
+            }
+          ],
+          members: [
+            {
+              table: 'projects',
+              as: 'project',
+              select: ['name'],
+              leftJoin: ['project.creatorId', 'users.id']
+            }
+          ]
+        }
+      ], [
+        {
+          id: 1,
+          name: 'Alice A',
+          project: { name: 'Busy Project' },
+          comments: [
+            { id: 1, comment: 'A' },
+            { id: 3, comment: 'C' }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Bob B',
+          project: { name: 'Empty Project' },
+          comments: [
+            { id: 2, comment: 'B' }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Carl C',
+          project: { name: null },
+          comments: []
+        }
+      ],
+      null,
+      {
+        comments: new Set([1, 2, 3, null]),
+        projects: new Set([1, 2, null]),
+        users: new Set([1, 3, 2])
+      });
     });
   });
 
