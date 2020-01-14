@@ -20,6 +20,7 @@ const Limit = require('./Limit');
  * - `[where]` array of conditions attached if any
  * - `[order]` order conditions if any
  * - `[limit]` limit condition if any
+ * - `[process]` additional post-processing instructions per field described as a mapping
  */
 class Select extends MainQuery {
   constructor(q) {
@@ -31,7 +32,7 @@ class Select extends MainQuery {
       join: q.join || undefined,
       members: q.members || [],
       collections: q.collections || [],
-      process: q.process || undefined, // TODO: What's this? Document or remove.
+      process: q.process || undefined,
       where: q.where || undefined,
       order: q.order || undefined,
       limit: q.limit || undefined
