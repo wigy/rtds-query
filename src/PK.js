@@ -4,7 +4,7 @@ const RTDSError = require('./RTDSError');
  * Convert PK definition to an array of field names.
  * @param {undefined|null|String|String[]} pk
  */
-const PKs = (pk) => {
+const asArray = (pk) => {
   if (pk === undefined || pk === null) {
     return ['id'];
   }
@@ -39,7 +39,6 @@ const getPK = (pk, obj) => {
  * @param {Object}
  */
 const getPKasKey = (pk, obj) => {
-  // TODO: No test for this function.
   if (pk === undefined || pk === null) {
     if (obj.id === undefined) {
       throw new Error(`Unable to get primary key 'id' for object ${JSON.stringify(obj)}.`);
@@ -95,7 +94,7 @@ const sorterPK = (pk) => {
  * @param {Object} obj
  */
 const hasPK = (pk, obj) => {
-  return PKs(pk).every(k => k in obj);
+  return asArray(pk).every(k => k in obj);
 };
 
 /**
@@ -104,7 +103,7 @@ const hasPK = (pk, obj) => {
  * @param {Object} obj
  */
 const hasNonNullPK = (pk, obj) => {
-  return PKs(pk).every(k => (k in obj) && obj[k] !== null);
+  return asArray(pk).every(k => (k in obj) && obj[k] !== null);
 };
 
 /**
@@ -126,6 +125,7 @@ const isPK = (pk, key) => {
 };
 
 module.exports = {
+  asArray,
   comparePK,
   getPK,
   getPKasKey,

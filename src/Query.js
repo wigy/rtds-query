@@ -9,6 +9,7 @@ const Delete = require('./nodes/Delete');
 const Join = require('./nodes/Join');
 const Field = require('./nodes/Field');
 const Parser = require('./Parser');
+const PK = require('./PK');
 
 /*********************************************************************************/
 
@@ -62,7 +63,7 @@ class Query {
 
     const changeNode = (node) => {
       if (node instanceof Select) {
-        const selects = node.pk.map((s, i) => {
+        const selects = PK.asArray(node.pk).map((s, i) => {
           const key = `PK[${node.table}[${i}]]`;
           return Field.parse({[s]: key}, node.table);
         });

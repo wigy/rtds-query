@@ -238,7 +238,7 @@ describe('Formula class', () => {
     }));
   });
 
-  xit('can be constructed from query with collections', () => {
+  it('can be constructed from query with collections', () => {
     const q = new Query({
       table: 'users',
       select: ['name'],
@@ -253,10 +253,28 @@ describe('Formula class', () => {
     });
     assert.deepStrictEqual(q.getPostFormula(), new Formula({
       flat: { name: 'name' },
+      pk: 'name',
       arrays: { comments: { flat: { comment: 'comments.comment' } } }
     }));
   });
 
-  // TODO: Test for explicit query PKs.
-  // TODO: Test for multiple query PKs.
+  it('can be constructed from query with collections', () => {
+    const q = new Query({
+      table: 'users',
+      select: ['name'],
+      pk: ['id', 'name'],
+      collections: [
+        {
+          table: 'comments',
+          select: ['comment'],
+          join: ['users.id', 'comments.userId']
+        }
+      ]
+    });
+    assert.deepStrictEqual(q.getPostFormula(), new Formula({
+      flat: { name: 'name' },
+      pk: ['id', 'name'],
+      arrays: { comments: { flat: { comment: 'comments.comment' } } }
+    }));
+  });
 });

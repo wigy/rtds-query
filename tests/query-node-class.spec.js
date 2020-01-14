@@ -30,7 +30,7 @@ describe('Query (and QueryNode) class', () => {
           {
             node: 'Select',
             table: 'users',
-            pk: ['id'],
+            pk: null,
             select: [
               { node: 'Field', table: 'users', field: 'id', as: 'id' },
               { node: 'Field', table: 'users', field: 'name', as: 'name' },
@@ -43,7 +43,7 @@ describe('Query (and QueryNode) class', () => {
           {
             node: 'Select',
             table: 'comments',
-            pk: ['id'],
+            pk: null,
             select: [
               { node: 'Field', table: 'comments', field: 'id', as: 'id' },
               {
@@ -104,7 +104,7 @@ describe('Query (and QueryNode) class', () => {
       assert.deepStrictEqual(wq.toJSON(), {
         node: 'Select',
         table: 'users',
-        pk: ['id'],
+        pk: null,
         select: [
           { node: 'Field', table: 'users', field: 'id', as: 'id' },
           { node: 'Field', table: 'users', field: 'name', as: 'name' },
@@ -115,7 +115,7 @@ describe('Query (and QueryNode) class', () => {
           {
             node: 'Select',
             table: 'tools',
-            pk: ['id'],
+            pk: null,
             select: [
               { node: 'Field', table: 'tools', field: 'id', as: 'id' },
               { node: 'Field', table: 'tools', field: 'name', as: 'name' }

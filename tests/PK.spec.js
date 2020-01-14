@@ -71,4 +71,18 @@ describe('PK', () => {
     assert.strictEqual(PK.isPK(['x', 'y'], 'y'), true);
     assert.strictEqual(PK.isPK(['x', 'y'], 'z'), false);
   });
+
+  it('provides unique strings for keys', () => {
+    assert(PK.getPKasKey(null, {id: null}) !== PK.getPKasKey(null, {id: 0}));
+    assert(PK.getPKasKey(null, {id: null}) !== PK.getPKasKey(null, {id: ''}));
+    assert(PK.getPKasKey(null, {id: 0}) !== PK.getPKasKey(null, {id: ''}));
+
+    assert(PK.getPKasKey(['a', 'b'], {a: 0, b: 0}) !== PK.getPKasKey(['a', 'b'], {a: 0, b: ''}));
+    assert(PK.getPKasKey(['a', 'b'], {a: '', b: ''}) !== PK.getPKasKey(['a', 'b'], {a: 0, b: ''}));
+    assert(PK.getPKasKey(['a', 'b'], {a: null, b: ''}) !== PK.getPKasKey(['a', 'b'], {a: 0, b: ''}));
+    assert(PK.getPKasKey(['a', 'b'], {a: 1, b: 2}) !== PK.getPKasKey(['a', 'b'], {a: '1', b: '2'}));
+
+    assert(PK.getPKasKey(['a', 'b'], {a: 1, b: 2}) === PK.getPKasKey(['a', 'b'], {b: 2, a: 1}));
+    assert(PK.getPKasKey(['a', 'b'], {a: '', b: 0}) === PK.getPKasKey(['a', 'b'], {b: 0, a: ''}));
+  });
 });

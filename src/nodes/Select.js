@@ -12,7 +12,7 @@ const Limit = require('./Limit');
  * Parameters:
  * - `table` name of the table
  * - `[as]` alias to be used when this is as a member (defaults to `table`)
- * - `[pk]` a list of primary keys (defaults to `['id']`)
+ * - `[pk]` a list of primary keys (defaults to `id`)
  * - `select` a list of members to select
  * - `join` what join type is used to link this to previous table unless first
  * - `members` additional Select nodes to treat as object members of the result lines
@@ -27,7 +27,7 @@ class Select extends MainQuery {
     super({
       table: q.table,
       as: q.as || undefined,
-      pk: q.pk || ['id'], // TODO: Change to null.
+      pk: q.pk || null,
       select: q.select,
       join: q.join || undefined,
       members: q.members || [],
@@ -98,9 +98,9 @@ class Select extends MainQuery {
   getPostFormula() {
     const ret = {};
     ret.flat = this.select.reduce((prev, cur) => ({...prev, [cur.as]: cur.getAsName()}), {});
-
-    // TODO: Set ret.pk from this.pk once set and it is defaulting to null.
-
+    if (this.pk !== null) {
+      ret.pk = this.pk;
+    }
     if (this.members.length) {
       ret.objects = {};
       this.members.forEach(m => {
@@ -207,11 +207,6 @@ class Select extends MainQuery {
         q.where = [q.where];
       }
       q.where = q.where.map(w => Where.parse(w));
-    }
-    if ('pk' in q) {
-      if (typeof q.pk === 'string') {
-        q.pk = [q.pk];
-      }
     }
     if ('order' in q) {
       q.order = Order.parse(q.order, q.table);
