@@ -4,7 +4,7 @@ const path = require('path');
 const { Query, Driver } = require('../src');
 
 // If set, show all parsed queries and results.
-const DEBUG = false;
+const DEBUG = true;
 // If set, throw assertions.
 const ASSERT = true;
 
@@ -552,7 +552,9 @@ describe('Queries', () => {
           name: 'Carl C',
           comments: []
         }
-      ]);
+      ],
+      null,
+      { comments: new Set([1, 2, 3, null]), users: new Set([1, 3, 2]) });
     });
   });
 
@@ -623,9 +625,10 @@ describe('Queries', () => {
       }, [
         { id: 1 },
         { id: 2 }
-      ]);
+      ],
+      null,
+      {users: new Set([1, 2])});
     });
-    // TODO: Fill in tests to check affected IDs.
 
     it('can limit number and order descending of search results', async() => {
       await test({
@@ -636,7 +639,9 @@ describe('Queries', () => {
       }, [
         { id: 3 },
         { id: 2 }
-      ]);
+      ],
+      null,
+      {users: new Set([2, 3])});
     });
 
     it('can order more than one table and still use limit', async() => {
@@ -665,7 +670,9 @@ describe('Queries', () => {
           age: 33,
           name: 'Busy Project'
         }
-      ]);
+      ],
+      null,
+      {users: new Set([2, 3]), projects: new Set([1, 2])});
     });
   });
 
@@ -740,8 +747,12 @@ describe('Queries', () => {
         {name: 'Mass Insert 3', age: 102},
         {name: 'Mass Insert 4', age: 102}
       ]);
-      // TODO: Need orderBy support to ensure correct order for assert.
-      const data = await new Query({table: 'users', select: ['name', 'age'], where: 'age=102'}).select(driver);
+      const data = await new Query({
+        table: 'users',
+        select: ['name', 'age'],
+        where: 'age=102',
+        order: 'name'
+      }).select(driver);
       assert.deepStrictEqual(data, [
         {name: 'Mass Insert 1', age: 102},
         {name: 'Mass Insert 2', age: 102},

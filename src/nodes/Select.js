@@ -5,6 +5,7 @@ const Join = require('./Join');
 const Where = require('./Where');
 const Order = require('./Order');
 const Limit = require('./Limit');
+const PK = require('../PK');
 
 /**
  * Select query.
@@ -84,8 +85,8 @@ class Select extends MainQuery {
     if (this.as) {
       ret += ` as ${this.as}`;
     }
-    if (this.pk.length !== 1) {
-      ret += ` (PK: ${this.pk.join(' + ')})`;
+    if (this.pk !== null) {
+      ret += ` (PK: ${PK.asArray(this.pk).join(' + ')})`;
     }
     return ret;
   }
