@@ -24,6 +24,7 @@ class SqliteDriver extends SqlDriver {
     return new Promise((resolve, reject) => {
       this.db.all(sql, function(err, rows) {
         if (err) {
+          console.log(sql);
           reject(err);
         } else {
           resolve(rows);
@@ -32,22 +33,14 @@ class SqliteDriver extends SqlDriver {
     });
   }
 
-  async runInsertQuery(sql, values, pk) {
+  async runInsertQuery(sql, values, pks) {
     const db = this.db;
     return new Promise((resolve, reject) => {
-      const [, table] = /INSERT INTO `(.*?)`/.exec(sql);
       db.run(sql, values, function(err, res) {
         if (err) {
           reject(err);
         } else {
-          db.all(`SELECT * FROM \`${table}\` WHERE \`${pk}\` = ?`, [this.lastID], function(err, res) {
-            if (err) {
-              reject(err);
-            } else {
-              // TODO: This returns only one value even if multiple were inserted.
-              resolve(res[0]);
-            }
-          });
+          resolve(true);
         }
       });
     });

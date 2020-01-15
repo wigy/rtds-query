@@ -1,5 +1,7 @@
 const MainQuery = require('./MainQuery');
 const RTDSError = require('../RTDSError');
+const Field = require('./Field');
+const PK = require('../PK');
 
 /**
  * Insert query.
@@ -14,8 +16,11 @@ class Insert extends MainQuery {
     super({
       insert: q.insert,
       table: q.table,
-      pk: q.pk || 'id'
+      pk: q.pk || null
     });
+    for (const field of this.insert) {
+      this.addChild(field);
+    }
   }
 
   getFields() {
@@ -27,16 +32,21 @@ class Insert extends MainQuery {
   }
 
   getDumpName() {
-    return this.table + '(' + this.insert.join(', ') + ')';
+    let ret = this.table;
+    if (this.pk !== null) {
+      ret += ` (PK: ${PK.asArray(this.pk).join(' + ')})`;
+    }
+    return ret;
   }
 
   createSQL(driver, obj) {
+    const fields = this.insert.map(f => f.field);
     (obj instanceof Array ? obj : [obj]).forEach(o => Object.keys(o).forEach(key => {
-      if (!this.insert.includes(key)) {
+      if (!fields.includes(key)) {
         throw new RTDSError(`A field '${key}' is not defined in insertion query for '${this.table}'.`);
       }
     }));
-    return driver.createSQL(this.table, this.insert, this.pk, obj);
+    return driver.createSQL(this.table, fields, PK.asArray(this.pk), obj);
   }
 
   /**
@@ -45,11 +55,10 @@ class Insert extends MainQuery {
    */
   static parse(q) {
     if (typeof q.insert === 'string') {
-      // TODO: These should be converted to Field elements (also in Update).
       q.insert = [q.insert];
     }
     return new Insert({
-      insert: q.insert,
+      insert: q.insert.map(s => Field.parse(s, q.table)),
       table: q.table,
       pk: q.pk
     });

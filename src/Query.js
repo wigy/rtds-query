@@ -6,6 +6,7 @@ const Select = require('./nodes/Select');
 const Insert = require('./nodes/Insert');
 const Update = require('./nodes/Update');
 const Delete = require('./nodes/Delete');
+const QueryNode = require('./nodes/QueryNode');
 const Join = require('./nodes/Join');
 const Field = require('./nodes/Field');
 const Parser = require('./Parser');
@@ -20,9 +21,17 @@ class Query {
 
   static get PK_REGEX() { return /(.*)PK\[(\w+)\[(\d+)\]\]$/; }
 
+  /**
+   * Create query from node or from unparsed query description.
+   * @param {Object|QueryNode} q
+   */
   constructor(q = {}) {
+    if (q instanceof QueryNode) {
+      this.root = q;
+    } else {
+      this.root = Query.parse(q);
+    }
     this.sql = {};
-    this.root = Query.parse(q);
     this.root.markRoot(this.root);
   }
 
@@ -82,6 +91,56 @@ class Query {
     // console.log('OUT');
     // copy.dump();
 
+    return copy;
+  }
+
+  /**
+   * Create new query that selects also table primary keys.
+   * @returns {Query}
+   */
+  NEWselectPKs() {
+    const chain = [];
+
+    const changeNode = (oldNode) => {
+      // Clone the node.
+      let node = clone(oldNode);
+      node.root = null;
+      node.parent = null;
+      node.children = [];
+      node.prev = null;
+      node.next = null;
+      // Handle Select.
+      if (node instanceof Select) {
+        chain.push(node);
+        const selects = PK.asArray(node.pk).map((s, i) => {
+          const key = `PK[${node.table}[${i}]]`;
+          return Field.parse({[s]: key}, node.table);
+        });
+        selects.forEach(s => node.addChild(s));
+        node.select = node.select.concat(selects);
+      // Handle other chained nodes.
+      } else if (node instanceof Insert) {
+        const select = PK.asArray(node.pk).map((s, i) => {
+          const key = `PK[${node.table}[${i}]]`;
+          return Field.parse({[s]: key}, node.table);
+        });
+        node = new Select({table: node.table, pk: node.pk, select});
+        chain.push(node);
+      } else {
+      // Handle children.
+        if (node.children) {
+          for (const c of node.children) {
+            node.addChild(changeNode(c));
+          }
+        }
+      }
+      return node;
+    };
+
+    const copy = new Query(changeNode(this.root));
+    for (let i = 1; i < chain.length; i++) {
+      chain[i - 1].chain(chain[i]);
+    }
     return copy;
   }
 
@@ -190,7 +249,7 @@ class Query {
    */
   async create(driver, obj) {
     const [sql, values] = this.createSQL(driver, obj);
-    const data = await driver.runInsertQuery(sql, values, this.root.pk);
+    const data = await driver.runInsertQuery(sql, values, PK.asArray(this.root.pk));
     return data;
   }
 

@@ -24,7 +24,7 @@ class SqlDriver extends Driver {
     return `\`${table}\``;
   }
 
-  createSQL(table, fields, _pk, obj) {
+  createSQL(table, fields, pks, obj) {
     if (!(obj instanceof Array)) {
       obj = [obj];
     }

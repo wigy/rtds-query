@@ -828,15 +828,18 @@ describe('Queries', () => {
         insert: ['name', 'age'],
         table: 'users'
       });
+      const res = await q.create(driver, {name: 'Z-man', age: 22});
+      assert.strictEqual(res, true);
 
-      const res = await q.create(driver, {name: 'Freshly Made', age: 22});
-      assert.strictEqual(res.name, 'Freshly Made');
-      assert.strictEqual(res.age, 22);
+      const data = await new Query({table: 'users', select: ['name', 'age'], orderBy: 'name'}).select(driver);
+      assert.strictEqual(data.length, 4);
+      assert.strictEqual(data[3].name, 'Z-man');
+      assert.strictEqual(data[3].age, 22);
 
-      const data = await new Query({table: 'users', select: ['name', 'age'], where: `id=${res.id}`}).select(driver);
-      assert.strictEqual(data.length, 1);
-      assert.strictEqual(data[0].name, 'Freshly Made');
-      assert.strictEqual(data[0].age, 22);
+      await new Query({
+        delete: ['name'],
+        table: 'users'
+      }).delete(driver, {name: 'Z-man'});
     });
 
     it('multiple items', async () => {
@@ -930,6 +933,7 @@ describe('Queries', () => {
   });
 
   describe('Deleting', () => {
+    // TODO: Other test affects this. Need to be independent (user ID: 4 from insert test).
     it('with single keys', async () => {
       const q = new Query({
         delete: ['id'],
@@ -937,7 +941,7 @@ describe('Queries', () => {
       });
       await q.delete(driver, {id: 3});
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
-      assert.deepStrictEqual(userIds, [{ id: 1 }, { id: 2 }, { id: 4 }]);
+      assert.deepStrictEqual(userIds, [{ id: 1 }, { id: 2 }]);
     });
 
     it('with multiple keys', async () => {
@@ -947,7 +951,7 @@ describe('Queries', () => {
       });
       await q.delete(driver, {id: 1, name: 'Alice A'});
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
-      assert.deepStrictEqual(userIds, [{ id: 2 }, { id: 4 }]);
+      assert.deepStrictEqual(userIds, [{ id: 2 }]);
     });
 
     it('with non-existing keys', async () => {
@@ -957,7 +961,7 @@ describe('Queries', () => {
       });
       await q.delete(driver, {name: 'Not here'});
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
-      assert.deepStrictEqual(userIds, [{ id: 2 }, { id: 4 }]);
+      assert.deepStrictEqual(userIds, [{ id: 2 }]);
     });
   });
 });
