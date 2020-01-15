@@ -54,13 +54,14 @@ class Query {
   }
 
   /**
-   * Create new query that selects table primary keys.
+   * Create new query that selects also table primary keys.
    * @returns {Query}
    */
   selectPKs() {
     const copy = clone(this);
     copy.sql = {};
-
+    // console.log('IN');
+    // copy.dump();
     const changeNode = (node) => {
       if (node instanceof Select) {
         const selects = PK.asArray(node.pk).map((s, i) => {
@@ -78,6 +79,8 @@ class Query {
     };
 
     changeNode(copy.root);
+    // console.log('OUT');
+    // copy.dump();
 
     return copy;
   }
@@ -209,7 +212,7 @@ class Query {
    */
   async update(driver, obj) {
     const [sql, values] = this.updateSQL(driver, obj);
-    const data = await driver.runUpdateQuery(sql, values, this.root.pk);
+    const data = await driver.runUpdateQuery(sql, values, PK.asArray(this.root.pk));
     return data;
   }
 

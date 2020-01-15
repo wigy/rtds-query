@@ -877,15 +877,21 @@ describe('Queries', () => {
         update: ['name', 'age'],
         table: 'users'
       });
+
       const res = await q.update(driver, {id: userId, name: 'Aging', age: 53});
       assert.strictEqual(res.id, userId);
       assert.strictEqual(res.name, 'Aging');
       assert.strictEqual(res.age, 53);
 
-      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).select(driver);
-      assert.strictEqual(unaffected.length, 1);
-      assert.strictEqual(unaffected[0].name, 'Alice A');
-      assert.strictEqual(unaffected[0].age, 21);
+      const unaffected1 = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).select(driver);
+      assert.strictEqual(unaffected1.length, 1);
+      assert.strictEqual(unaffected1[0].name, 'Alice A');
+      assert.strictEqual(unaffected1[0].age, 21);
+
+      const unaffected2 = await new Query({table: 'users', select: ['name', 'age'], where: 'id=2'}).select(driver);
+      assert.strictEqual(unaffected2.length, 1);
+      assert.strictEqual(unaffected2[0].name, 'Bob B');
+      assert.strictEqual(unaffected2[0].age, 33);
     });
 
     it('single items partially', async () => {

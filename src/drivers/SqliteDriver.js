@@ -53,7 +53,7 @@ class SqliteDriver extends SqlDriver {
     });
   }
 
-  async runUpdateQuery(sql, values, pk) {
+  async runUpdateQuery(sql, values, pks) {
     const db = this.db;
     return new Promise((resolve, reject) => {
       const [, table] = /UPDATE `(.*?)`/.exec(sql);
@@ -61,7 +61,8 @@ class SqliteDriver extends SqlDriver {
         if (err) {
           reject(err);
         } else {
-          db.all(`SELECT * FROM \`${table}\` WHERE \`${pk}\` = ?`, [values[values.length - 1]], function(err, res) {
+          const where = pks.map(pk => `\`${pk}\` = ?`).join(' AND ');
+          db.all(`SELECT * FROM \`${table}\` WHERE ${where}`, values.slice(values.length - pks.length), function(err, res) {
             if (err) {
               reject(err);
             } else {

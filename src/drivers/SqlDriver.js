@@ -34,11 +34,10 @@ class SqlDriver extends Driver {
     return [sql, values];
   }
 
-  updateSQL(table, fields, _pk, obj) {
+  updateSQL(table, fields, pks, obj) {
     fields = fields.filter(f => f in obj);
-    const sql = `UPDATE \`${table}\` SET ${fields.map((f) => `\`${f}\` = ?`).join(', ')} WHERE \`${_pk}\` = ?`;
-    const f = fields.map(f => obj[f]);
-    f.push(obj[_pk]);
+    const sql = `UPDATE \`${table}\` SET ${fields.map((f) => `\`${f}\` = ?`).join(', ')} WHERE ` + pks.map(pk => `\`${pk}\` = ?`).join(' AND ');
+    const f = fields.map(f => obj[f]).concat(pks.map(pk => obj[pk]));
     return [sql, f];
   }
 
