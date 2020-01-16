@@ -234,7 +234,7 @@ class Query {
   /**
    * Construct SQL for creating one new instance.
    * @param {Driver} driver
-   * @param {Object} obj
+   * @param {Object|Object[]} obj
    * @returns {Object}
    */
   createSQL(driver, obj) {
@@ -244,7 +244,7 @@ class Query {
   /**
    * Execute a query to create one new instance.
    * @param {Driver} driver
-   * @param {Object} obj
+   * @param {Object|Object[]} obj
    * @returns {Object}
    */
   async create(driver, obj) {
@@ -270,6 +270,7 @@ class Query {
    * @returns {Object}
    */
   async update(driver, obj) {
+    // TODO: Multiple updates.
     const [sql, values] = this.updateSQL(driver, obj);
     const data = await driver.runUpdateQuery(sql, values, PK.asArray(this.root.pk));
     return data;
@@ -278,7 +279,7 @@ class Query {
   /**
    * Construct SQL for deleting one instance.
    * @param {Driver} driver
-   * @param {Object} obj
+   * @param {Object|Object[]} obj
    * @returns {Object}
    */
   deleteSQL(driver, obj) {
@@ -288,12 +289,12 @@ class Query {
   /**
    * Execute a query to delete one instance.
    * @param {Driver} driver
-   * @param {Object} obj
+   * @param {Object|Object[]} obj
    * @returns {Object}
    */
   async delete(driver, obj) {
     const [sql, values] = this.deleteSQL(driver, obj);
-    const data = await driver.runDeleteQuery(sql, values, this.root.pk);
+    const data = await driver.runDeleteQuery(sql, values, PK.asArray(this.root.pk));
     return data;
   }
 

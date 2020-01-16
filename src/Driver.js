@@ -80,15 +80,16 @@ class Driver {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement escapeOrder().`);
   }
 
-  createSQL(fields, pk, obj) {
+  createSQL(table, fields, obj, pks) {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement createSQL().`);
   }
 
-  updateSQL(fields, pk, obj) {
+  updateSQL(table, fields, obj, pks) {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement updateSQL().`);
   }
 
-  deleteSQL(fields, pk, obj) {
+  // TODO: Ensure similar interface to previous functions.
+  deleteSQL(table, obj, pks) {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement deleteSQL().`);
   }
 

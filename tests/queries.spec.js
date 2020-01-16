@@ -933,7 +933,6 @@ describe('Queries', () => {
   });
 
   describe('Deleting', () => {
-    // TODO: Other test affects this. Need to be independent (user ID: 4 from insert test).
     it('with single keys', async () => {
       const q = new Query({
         delete: ['id'],
@@ -949,7 +948,8 @@ describe('Queries', () => {
         delete: ['id', 'name'],
         table: 'users'
       });
-      await q.delete(driver, {id: 1, name: 'Alice A'});
+      await q.delete(driver, {id: 1, name: 'Alice A'}); // Hits.
+      await q.delete(driver, {id: 2, name: 'Wrong name'}); // No hits.
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{ id: 2 }]);
     });

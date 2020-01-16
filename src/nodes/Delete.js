@@ -1,5 +1,7 @@
 const MainQuery = require('./MainQuery');
 const RTDSError = require('../RTDSError');
+const Field = require('./Field');
+const PK = require('../PK');
 
 /**
  * Delete query.
@@ -14,7 +16,7 @@ class Update extends MainQuery {
     super({
       delete: q.delete,
       table: q.table,
-      pk: q.pk || 'id'
+      pk: q.pk || null
     });
   }
 
@@ -27,16 +29,21 @@ class Update extends MainQuery {
   }
 
   getDumpName() {
-    return this.table + '(' + this.delete.join(', ') + ')';
+    let ret = this.table;
+    if (this.pk !== null) {
+      ret += ` (PK: ${PK.asArray(this.pk).join(' + ')})`;
+    }
+    return ret;
   }
 
   deleteSQL(driver, obj) {
+    const fields = this.delete.map(f => f.field);
     Object.keys(obj).forEach(k => {
-      if (!this.delete.includes(k)) {
+      if (!fields.includes(k)) {
         throw new RTDSError(`A key '${k}' is not allowed as specifying the deletion.`);
       }
     });
-    return driver.deleteSQL(this.table, obj);
+    return driver.deleteSQL(this.table, obj, fields);
   }
 
   /**
@@ -45,11 +52,10 @@ class Update extends MainQuery {
    */
   static parse(q) {
     if (typeof q.delete === 'string') {
-      // TODO: These should be converted to Field elements (also in Insert).
       q.delete = [q.delete];
     }
     return new Update({
-      delete: q.delete,
+      delete: q.delete.map(s => Field.parse(s, q.table)),
       table: q.table,
       pk: q.pk
     });
