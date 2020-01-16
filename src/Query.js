@@ -256,7 +256,7 @@ class Query {
   /**
    * Construct SQL for updating one instance.
    * @param {Driver} driver
-   * @param {Object} obj
+   * @param {Object|Object[]} obj
    * @returns {Object}
    */
   updateSQL(driver, obj) {
@@ -266,11 +266,11 @@ class Query {
   /**
    * Execute a query to update one instance.
    * @param {Driver} driver
-   * @param {Object} obj
+   * @param {Object|Object[]} obj
    * @returns {Object}
    */
   async update(driver, obj) {
-    // TODO: Multiple updates.
+    // TODO: Multiple updates, creations and deletions with tests (verify).
     const [sql, values] = this.updateSQL(driver, obj);
     const data = await driver.runUpdateQuery(sql, values, PK.asArray(this.root.pk));
     return data;

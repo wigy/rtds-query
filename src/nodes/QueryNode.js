@@ -160,27 +160,30 @@ class QueryNode {
   /**
    * Construct a SQL for inserting a row.
    * @param {Driver} driver
+   * @param {Object|Object[]} obj
    * @returns {String}
    */
-  createSQL(driver) {
+  createSQL(driver, obj) {
     throw new RTDSError(`Creation not supported for ${this.constructor.name}.`);
   }
 
   /**
    * Construct a SQL for updating a row.
    * @param {Driver} driver
+   * @param {Object|Object[]} obj
    * @returns {String}
    */
-  updateSQL(driver) {
+  updateSQL(driver, obj) {
     throw new RTDSError(`Updating not supported for ${this.constructor.name}.`);
   }
 
   /**
    * Construct a SQL for deleting a row.
    * @param {Driver} driver
+   * @param {Object|Object[]} obj
    * @returns {String}
    */
-  deleteSQL(driver) {
+  deleteSQL(driver, obj) {
     throw new RTDSError(`Deleting not supported for ${this.constructor.name}.`);
   }
 

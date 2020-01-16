@@ -41,16 +41,16 @@ class SqlDriver extends Driver {
     return [sql, f];
   }
 
-  deleteSQL(table, obj, pks) {
+  deleteSQL(table, fields, obj, pks) {
     if (!(obj instanceof Array)) {
       obj = [obj];
     }
     const values = [];
     const where = [];
-    const whereSql = '(' + pks.map(pk => `\`${pk}\` = ?`).join(' AND ') + ')';
+    const whereSql = '(' + fields.map(f => `\`${f}\` = ?`).join(' AND ') + ')';
     for (const row of obj) {
-      for (const pk of pks) {
-        values.push(row[pk]);
+      for (const f of fields) {
+        values.push(row[f]);
       }
       where.push(whereSql);
     }

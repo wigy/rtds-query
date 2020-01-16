@@ -88,8 +88,7 @@ class Driver {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement updateSQL().`);
   }
 
-  // TODO: Ensure similar interface to previous functions.
-  deleteSQL(table, obj, pks) {
+  deleteSQL(table, fields, obj, pks) {
     throw new RTDSError(`Driver ${this.constructor.name} does not implement deleteSQL().`);
   }
 

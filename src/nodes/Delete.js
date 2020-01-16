@@ -43,7 +43,7 @@ class Update extends MainQuery {
         throw new RTDSError(`A key '${k}' is not allowed as specifying the deletion.`);
       }
     });
-    return driver.deleteSQL(this.table, obj, fields);
+    return driver.deleteSQL(this.table, fields, obj);
   }
 
   /**
