@@ -31,23 +31,6 @@ describe('Queries', () => {
 
     await readSql(driver, path.join(__dirname, 'migrations/init.sql'));
     await driver.initialize();
-
-    await new Query({
-      insert: ['id', 'name', 'age'],
-      table: 'users'
-    }).create(driver, require('./sample-data/users.json'));
-    await new Query({
-      insert: ['id', 'creatorId', 'name'],
-      table: 'projects'
-    }).create(driver, require('./sample-data/projects.json'));
-    await new Query({
-      insert: ['id', 'title', 'creatorId', 'projectId', 'ownerId'],
-      table: 'todos'
-    }).create(driver, require('./sample-data/todos.json'));
-    await new Query({
-      insert: ['id', 'userId', 'todoId', 'comment'],
-      table: 'comments'
-    }).create(driver, require('./sample-data/comments.json'));
   });
 
   /**
@@ -933,11 +916,9 @@ describe('Queries', () => {
   });
 
   describe('Deleting', () => {
-    const restoreUsers = () => {
-      driver.runQuery('DELETE FROM users');
-      const json = require('./sample-data/users.json');
-      const sql = '(' + json.map(e => Object.values(e).map(v => JSON.stringify(v)).join(', ')).join('), (') + ')';
-      driver.runQuery('INSERT INTO users (id, name, age) VALUES ' + sql);
+    const restoreUsers = async () => {
+      await driver.runQuery('DELETE FROM users');
+      await driver.runQuery("INSERT INTO users (id, name, age) VALUES (1, 'Alice A', 21), (2, 'Bob B', 33), (3, 'Carl C', 44)");
     };
 
     it('with single keys', async () => {
@@ -948,7 +929,7 @@ describe('Queries', () => {
       await q.delete(driver, {id: 3});
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{ id: 1 }, { id: 2 }]);
-      restoreUsers();
+      return restoreUsers();
     });
 
     it('with single keys array', async () => {
@@ -959,7 +940,7 @@ describe('Queries', () => {
       await q.delete(driver, [{id: 3}, {id: 2}]);
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{ id: 1 }]);
-      restoreUsers();
+      return restoreUsers();
     });
 
     it('with multiple keys', async () => {
@@ -971,7 +952,7 @@ describe('Queries', () => {
       await q.delete(driver, {id: 2, name: 'Wrong name'}); // No hits.
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{ id: 2 }, { id: 3 }]);
-      restoreUsers();
+      return restoreUsers();
     });
 
     it('with non-existing keys', async () => {
@@ -982,7 +963,7 @@ describe('Queries', () => {
       await q.delete(driver, {name: 'Not here'});
       const userIds = await new Query({select: 'id', table: 'users'}).select(driver);
       assert.deepStrictEqual(userIds, [{id: 1}, { id: 2 }, { id: 3 }]);
-      restoreUsers();
+      return restoreUsers();
     });
   });
 });
