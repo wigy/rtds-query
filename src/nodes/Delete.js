@@ -38,11 +38,11 @@ class Update extends MainQuery {
 
   deleteSQL(driver, obj) {
     const fields = this.delete.map(f => f.field);
-    Object.keys(obj).forEach(k => {
+    (obj instanceof Array ? obj : [obj]).forEach(obj => Object.keys(obj).forEach(k => {
       if (!fields.includes(k)) {
         throw new RTDSError(`A key '${k}' is not allowed as specifying the deletion.`);
       }
-    });
+    }));
     return driver.deleteSQL(this.table, fields, obj);
   }
 

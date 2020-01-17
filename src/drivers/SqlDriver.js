@@ -54,7 +54,7 @@ class SqlDriver extends Driver {
       }
       where.push(whereSql);
     }
-    const sql = `DELETE FROM \`${table}\` WHERE ${where.join(' AND ')}`;
+    const sql = `DELETE FROM \`${table}\` WHERE ${where.join(' OR ')}`;
     return [sql, values];
   }
 
