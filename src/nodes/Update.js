@@ -41,9 +41,6 @@ class Update extends MainQuery {
 
   updateSQL(driver, obj) {
     const fields = this.update.map(f => f.field);
-    if (!PK.hasPK(this.pk, obj)) {
-      throw new RTDSError(`There is no pk ${JSON.stringify(this.pk)} for update in ${JSON.stringify(obj)}`);
-    }
     (obj instanceof Array ? obj : [obj]).forEach(o => Object.keys(o).forEach(key => {
       if (PK.isPK(this.pk, key)) {
         return;

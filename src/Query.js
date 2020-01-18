@@ -270,10 +270,10 @@ class Query {
    * @returns {Object}
    */
   async update(driver, obj) {
-    // TODO: Multiple updates, creations and deletions with tests (verify).
+    const multi = obj instanceof Array;
     const [sql, values] = this.updateSQL(driver, obj);
     const data = await driver.runUpdateQuery(sql, values, PK.asArray(this.root.pk));
-    return data;
+    return multi ? data : data[0];
   }
 
   /**

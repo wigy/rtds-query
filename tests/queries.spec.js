@@ -74,6 +74,14 @@ describe('Queries', () => {
   };
 
   /**
+   * Helper to put back users as they were.
+   */
+  const restoreUsers = async () => {
+    await driver.runQuery('DELETE FROM users');
+    await driver.runQuery("INSERT INTO users (id, name, age) VALUES (1, 'Alice A', 21), (2, 'Bob B', 33), (3, 'Carl C', 44)");
+  };
+
+  /**
    * Tests.
    */
   describe('Basic query', () => {
@@ -878,6 +886,8 @@ describe('Queries', () => {
       assert.strictEqual(unaffected2.length, 1);
       assert.strictEqual(unaffected2[0].name, 'Bob B');
       assert.strictEqual(unaffected2[0].age, 33);
+
+      return restoreUsers();
     });
 
     it('single items partially', async () => {
@@ -895,32 +905,33 @@ describe('Queries', () => {
       assert.strictEqual(unaffected.length, 1);
       assert.strictEqual(unaffected[0].name, 'Alice A');
       assert.strictEqual(unaffected[0].age, 21);
+
+      return restoreUsers();
     });
 
-    it('single items fully', async () => {
-      const userId = 3;
+    it('multiple items fully', async () => {
       const q = new Query({
         update: ['name', 'age'],
         table: 'users'
       });
-      const res = await q.update(driver, {id: userId, name: 'Aging', age: 53});
-      assert.strictEqual(res.id, userId);
-      assert.strictEqual(res.name, 'Aging');
-      assert.strictEqual(res.age, 53);
+      const res = await q.update(driver, [{id: 1, name: 'Foo', age: 1}, {id: 2, name: 'Bar', age: 2}]);
+      assert.deepStrictEqual(res, [
+        { id: 1, name: 'Foo', age: 1 },
+        { id: 2, name: 'Bar', age: 2 }
+      ]);
 
-      const unaffected = await new Query({table: 'users', select: ['name', 'age'], where: 'id=1'}).select(driver);
-      assert.strictEqual(unaffected.length, 1);
-      assert.strictEqual(unaffected[0].name, 'Alice A');
-      assert.strictEqual(unaffected[0].age, 21);
+      const users = await new Query({table: 'users', select: ['name', 'age'], orderBy: 'id'}).select(driver);
+      assert.deepStrictEqual(users, [
+        { name: 'Foo', age: 1 },
+        { name: 'Bar', age: 2 },
+        { name: 'Carl C', age: 44 }
+      ]);
+
+      return restoreUsers();
     });
   });
 
   describe('Deleting', () => {
-    const restoreUsers = async () => {
-      await driver.runQuery('DELETE FROM users');
-      await driver.runQuery("INSERT INTO users (id, name, age) VALUES (1, 'Alice A', 21), (2, 'Bob B', 33), (3, 'Carl C', 44)");
-    };
-
     it('with single keys', async () => {
       const q = new Query({
         delete: ['id'],

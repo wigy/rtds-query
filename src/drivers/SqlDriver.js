@@ -35,9 +35,16 @@ class SqlDriver extends Driver {
   }
 
   updateSQL(table, fields, pks, obj) {
-    fields = fields.filter(f => f in obj);
-    const sql = `UPDATE \`${table}\` SET ${fields.map((f) => `\`${f}\` = ?`).join(', ')} WHERE ` + pks.map(pk => `\`${pk}\` = ?`).join(' AND ');
-    const f = fields.map(f => obj[f]).concat(pks.map(pk => obj[pk]));
+    if (!(obj instanceof Array)) {
+      obj = [obj];
+    }
+    const sql = [];
+    const f = [];
+    for (const o of obj) {
+      const fs = fields.filter(f => f in o);
+      sql.push(`UPDATE \`${table}\` SET ${fs.map((f) => `\`${f}\` = ?`).join(', ')} WHERE ` + pks.map(pk => `\`${pk}\` = ?`).join(' AND '));
+      f.push(fs.map(f => o[f]).concat(pks.map(pk => o[pk])));
+    }
     return [sql, f];
   }
 

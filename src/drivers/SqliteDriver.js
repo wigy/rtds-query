@@ -46,9 +46,9 @@ class SqliteDriver extends SqlDriver {
     });
   }
 
-  async runUpdateQuery(sql, values, pks) {
+  async runUpdateQuery(sqls, valueList, pks) {
     const db = this.db;
-    return new Promise((resolve, reject) => {
+    const runOne = async (sql, values) => new Promise((resolve, reject) => {
       const [, table] = /UPDATE `(.*?)`/.exec(sql);
       db.run(sql, values, function(err, res) {
         if (err) {
@@ -65,6 +65,7 @@ class SqliteDriver extends SqlDriver {
         }
       });
     });
+    return Promise.all(sqls.map((sql, idx) => runOne(sql, valueList[idx])));
   }
 
   async runDeleteQuery(sql, values, pk) {
