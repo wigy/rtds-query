@@ -41,6 +41,7 @@ class Insert extends MainQuery {
 
   createSQL(driver, obj) {
     const fields = this.insert.map(f => f.field);
+    driver.verifyTableColumns(this.table, fields);
     (obj instanceof Array ? obj : [obj]).forEach(o => Object.keys(o).forEach(key => {
       if (!fields.includes(key)) {
         throw new RTDSError(`A field '${key}' is not defined in insertion query for '${this.table}'.`);

@@ -38,6 +38,7 @@ class Update extends MainQuery {
 
   deleteSQL(driver, obj) {
     const fields = this.delete.map(f => f.field);
+    driver.verifyTableColumns(this.table, fields);
     (obj instanceof Array ? obj : [obj]).forEach(obj => Object.keys(obj).forEach(k => {
       if (!fields.includes(k)) {
         throw new RTDSError(`A key '${k}' is not allowed as specifying the deletion.`);

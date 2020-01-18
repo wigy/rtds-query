@@ -41,6 +41,7 @@ class Update extends MainQuery {
 
   updateSQL(driver, obj) {
     const fields = this.update.map(f => f.field);
+    driver.verifyTableColumns(this.table, fields);
     (obj instanceof Array ? obj : [obj]).forEach(o => Object.keys(o).forEach(key => {
       if (PK.isPK(this.pk, key)) {
         return;

@@ -94,7 +94,7 @@ describe('Catches invalid queries', () => {
     });
   });
 
-  describe('Column checking', () => {
+  describe('Column and table checking', () => {
     it('detects bad columns in select', async () => {
       const q = new Query({
         table: 'users',
@@ -103,6 +103,39 @@ describe('Catches invalid queries', () => {
       assert.throws(
         () => q.selectSQL(driver),
         new RTDSError("A table 'users' has no column 'foo'.")
+      );
+    });
+
+    it('detects bad columns in creation', async () => {
+      const q = new Query({
+        table: 'users',
+        insert: ['id', 'name']
+      });
+      assert.throws(
+        () => q.createSQL(driver, {x: 9}),
+        new RTDSError("A field 'x' is not defined in insertion query for 'users'.")
+      );
+    });
+
+    it('detects bad columns in update', async () => {
+      const q = new Query({
+        table: 'users',
+        update: ['id', 'name']
+      });
+      assert.throws(
+        () => q.updateSQL(driver, {x: 9}),
+        new RTDSError("A field 'x' is not defined in update query for 'users'.")
+      );
+    });
+
+    it('detects bad columns in delete', async () => {
+      const q = new Query({
+        table: 'users',
+        delete: ['id']
+      });
+      assert.throws(
+        () => q.deleteSQL(driver, {x: 9}),
+        new RTDSError("A key 'x' is not allowed as specifying the deletion.")
       );
     });
 
@@ -117,6 +150,37 @@ describe('Catches invalid queries', () => {
       );
     });
 
-    // TODO: Check delete, update and create as well.
+    it('detects bad table in delete', async () => {
+      const q = new Query({
+        table: 'strange',
+        delete: ['id']
+      });
+      assert.throws(
+        () => q.deleteSQL(driver, {id: 1}),
+        new RTDSError("No such table 'strange'.")
+      );
+    });
+
+    it('detects bad table in creation', async () => {
+      const q = new Query({
+        table: 'strange',
+        insert: ['id', 'name']
+      });
+      assert.throws(
+        () => q.createSQL(driver, {id: 1, name: 'X'}),
+        new RTDSError("No such table 'strange'.")
+      );
+    });
+
+    it('detects bad table in update', async () => {
+      const q = new Query({
+        table: 'strange',
+        update: ['id', 'name']
+      });
+      assert.throws(
+        () => q.updateSQL(driver, {id: 1, name: 'X'}),
+        new RTDSError("No such table 'strange'.")
+      );
+    });
   });
 });
