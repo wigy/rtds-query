@@ -508,7 +508,6 @@ describe('Queries', () => {
   describe('Collections', () => {
     // TODO: Collections of collections.
     // TODO: Members with collections.
-    // TODO: Multiple collections in single object.
     it('can collect members as an array', async () => {
       await test([
         {
@@ -548,7 +547,7 @@ describe('Queries', () => {
       { comments: new Set([1, 2, 3, null]), users: new Set([1, 3, 2]) });
     });
 
-    it.only('can use alias when using array', async () => {
+    it('can use alias when using array', async () => {
       await test([
         {
           table: 'users',
@@ -680,6 +679,61 @@ describe('Queries', () => {
           id: 3,
           name: 'Carl C',
           project: { name: null },
+          comments: []
+        }
+      ],
+      null,
+      {
+        comments: new Set([1, 2, 3, null]),
+        projects: new Set([1, 2, null]),
+        users: new Set([1, 3, 2])
+      });
+    });
+
+    it('can have multiple collections as an array', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['id', 'name'],
+          collections: [
+            {
+              table: 'comments',
+              select: ['id', 'comment'],
+              leftJoin: ['comments.userId', 'users.id']
+            },
+            {
+              table: 'projects',
+              select: ['id', 'name'],
+              leftJoin: ['projects.creatorId', 'users.id']
+            }
+          ]
+        }
+      ], [
+        {
+          id: 1,
+          name: 'Alice A',
+          projects: [
+            { id: 1, name: 'Busy Project' }
+          ],
+          comments: [
+            { id: 1, comment: 'A' },
+            { id: 3, comment: 'C' }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Bob B',
+          projects: [
+            { id: 2, name: 'Empty Project' }
+          ],
+          comments: [
+            { id: 2, comment: 'B' }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Carl C',
+          projects: [],
           comments: []
         }
       ],

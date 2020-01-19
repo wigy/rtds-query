@@ -32,19 +32,25 @@ const entry = (line, formula, arrays) => {
   }
   if (formula.arrays) {
     const pk = PK.getPKasKey(formula.pk, ret);
-    Object.entries(formula.arrays).map(([k, v]) => {
-      if (!arrays[k]) {
-        arrays[k] = {};
+    Object.entries(formula.arrays).map(([arrayName, arrayFormula]) => {
+      if (!arrays[arrayName]) {
+        arrays[arrayName] = {};
       }
-      if (!arrays[k][pk]) {
-        arrays[k][pk] = [];
-        ret[`__array[${k}]__`] = pk;
+      if (!arrays[arrayName][pk]) {
+        arrays[arrayName][pk] = []; // Here we collect items.
+        arrays[arrayName][`__PKS[${pk}]__`] = new Set(); // Here we collect PKs of the items added.
+        ret[`__array[${arrayName}]__`] = pk;
       } else {
         ret = undefined;
       }
-      const item = entry(line, v, arrays); // TODO: Or call process() instead?
-      if (PK.hasNonNullPK(v.pk, item)) {
-        arrays[k][pk].push(item);
+      const item = entry(line, arrayFormula, arrays); // TODO: Or call process() instead?
+      if (PK.hasNonNullPK(arrayFormula.pk, item)) {
+        const itemPK = PK.getPKasKey(arrayFormula.pk, item);
+        // Collect keys so that in case of multiple left joins we don't add the same twice.
+        if (!arrays[arrayName][`__PKS[${pk}]__`].has(itemPK)) {
+          arrays[arrayName][pk].push(item);
+          arrays[arrayName][`__PKS[${pk}]__`].add(itemPK);
+        }
       }
     });
   }
