@@ -509,7 +509,6 @@ describe('Queries', () => {
     // TODO: Collections of collections.
     // TODO: Members with collections.
     // TODO: Multiple collections in single object.
-    // TODO: Alias 'as' support for collection.
     it('can collect members as an array', async () => {
       await test([
         {
@@ -543,6 +542,46 @@ describe('Queries', () => {
           id: 3,
           name: 'Carl C',
           comments: []
+        }
+      ],
+      null,
+      { comments: new Set([1, 2, 3, null]), users: new Set([1, 3, 2]) });
+    });
+
+    it.only('can use alias when using array', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['id', 'name'],
+          collections: [
+            {
+              table: 'comments',
+              as: 'talk',
+              select: ['id', 'comment'],
+              leftJoin: ['talk.userId', 'users.id']
+            }
+          ]
+        }
+      ], [
+        {
+          id: 1,
+          name: 'Alice A',
+          talk: [
+            { id: 1, comment: 'A' },
+            { id: 3, comment: 'C' }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Bob B',
+          talk: [
+            { id: 2, comment: 'B' }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Carl C',
+          talk: []
         }
       ],
       null,
