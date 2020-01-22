@@ -50,7 +50,11 @@ class Field extends QueryNode {
       return new Field({ table, field: q });
     }
     if (typeof q === 'object') {
-      return new Field({ table, field: Object.keys(q)[0], as: Object.values(q)[0]});
+      const keys = Object.keys(q);
+      if (keys.length !== 1) {
+        throw new Error('Field cannot parse multiple keys (please use a list of separate objects).');
+      }
+      return new Field({ table, field: keys[0], as: Object.values(q)[0]});
     }
     throw new RTDSError(`Unable to parse a field ${JSON.stringify(q)}`);
   }

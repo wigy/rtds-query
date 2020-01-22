@@ -43,20 +43,20 @@ const getPKasKey = (pk, obj) => {
     if (obj.id === undefined) {
       throw new Error(`Unable to get primary key 'id' for object ${JSON.stringify(obj)}.`);
     }
-    return 'S|' + JSON.stringify(obj.id);
+    return JSON.stringify(obj.id);
   }
   if (typeof pk === 'string') {
     if (obj[pk] === undefined) {
       throw new Error(`Unable to get primary key '${pk}' for object ${JSON.stringify(obj)}.`);
     }
-    return 'S|' + JSON.stringify(obj[pk]);
+    return JSON.stringify(obj[pk]);
   }
-  return 'A|' + pk.map(k => {
+  return pk.map(k => {
     if (obj[k] === undefined) {
       throw new Error(`Unable to get primary key part '${k}' for object ${JSON.stringify(obj)}.`);
     }
     return JSON.stringify(obj[k]);
-  }).join('|');
+  }).join('\0');
 };
 
 /**

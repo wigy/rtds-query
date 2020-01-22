@@ -201,6 +201,70 @@ describe('Formula class', () => {
     }));
   });
 
+  it('can be constructed from query with multiple members', () => {
+    const q = new Query({
+      table: 'todos',
+      select: ['id', 'title'],
+      members: [
+        {
+          table: 'users',
+          as: 'owner',
+          select: ['id', 'name'],
+          leftJoin: ['owner.id', 'todos.ownerId']
+        },
+        {
+          table: 'users',
+          as: 'creator',
+          select: ['id', 'name'],
+          join: ['creator.id', 'todos.creatorId']
+        }
+      ]
+    });
+    assert.deepStrictEqual(q.getPostFormula(), new Formula({
+      flat: { id: 'id', title: 'title' },
+      objects: {
+        owner: { flat: { id: 'owner.id', name: 'owner.name' } },
+        creator: { flat: { id: 'creator.id', name: 'creator.name' } }
+      }
+    }));
+  });
+
+  it('can be constructed from nested members', () => {
+    const q = new Query({
+      table: 'todos',
+      select: ['id', 'title'],
+      members: [
+        {
+          table: 'projects',
+          as: 'project',
+          select: ['id', 'name'],
+          join: ['project.id', 'todos.projectId'],
+          members: [
+            {
+              table: 'users',
+              as: 'creator',
+              select: ['id', 'name'],
+              join: ['creator.id', 'project.creatorId']
+            }
+          ]
+        }
+      ]
+    });
+    assert.deepStrictEqual(q.getPostFormula(), new Formula({
+      flat: { id: 'id', title: 'title' },
+      objects: {
+        project: {
+          flat: { id: 'project.id', name: 'project.name' },
+          objects: {
+            creator: {
+              flat: { id: 'project.creator.id', name: 'project.creator.name' }
+            }
+          }
+        }
+      }
+    }));
+  });
+
   it('can be constructed from query with aliased members', () => {
     const q = new Query({
       table: 'todos',
