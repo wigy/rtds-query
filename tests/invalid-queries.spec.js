@@ -9,7 +9,9 @@ describe('Catches invalid queries', () => {
   before(async () => {
     await driver.initialize({
       users: new Set(['id', 'name', 'age']),
-      projects: new Set(['id', 'name'])
+      projects: new Set(['id', 'creatorId', 'name']),
+      comments: new Set(['id', 'userId', 'todoId', 'comment']),
+      todos: new Set(['id', 'title', 'creatorId', 'projectId', 'ownerId'])
     });
   });
 
@@ -201,6 +203,25 @@ describe('Catches invalid queries', () => {
         () => q.updateSQL(driver, {id: 1, name: 'X'}),
         new RTDSError("No such table 'strange'.")
       );
+    });
+
+    it('detects duplicate fields', async () => {
+      assert.throws(() => new Query([
+        {
+          table: 'users',
+          select: ['id', 'name']
+        },
+        {
+          table: 'todos',
+          select: ['id', 'title', 'creatorId'],
+          join: ['users.id', 'todos.creatorId']
+        }
+      ]).selectSQL(driver),
+      (err) => {
+        assert(err instanceof RTDSError);
+        assert(/Error: Contradicting aliases for `id`: `users\d+`\.`id` and `todos\d+`\.`id`\./.test(err));
+        return true;
+      });
     });
   });
 });

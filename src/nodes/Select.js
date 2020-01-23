@@ -1,4 +1,5 @@
 const clone = require('clone');
+const RTDSError = require('../RTDSError');
 const MainQuery = require('./MainQuery');
 const Field = require('./Field');
 const Join = require('./Join');
@@ -133,6 +134,14 @@ class Select extends MainQuery {
     }, []);
     if (this.next) {
       ret = ret.concat(this.next.buildSelectSQL(driver, {pkOnly}));
+    }
+    // Check for overlapping.
+    const has = {};
+    for (const select of ret.map(s => s.split(' AS '))) {
+      if (has[select[1]]) {
+        throw new RTDSError(`Contradicting aliases for ${select[1]}: ${has[select[1]]} and ${select[0]}.`);
+      }
+      has[select[1]] = select[0];
     }
     return ret;
   }

@@ -100,7 +100,7 @@ class Query {
    */
   NEWselectPKs() {
     const chain = [];
-
+    // TODO: Work in progress.
     const changeNode = (oldNode) => {
       // Clone the node.
       let node = clone(oldNode);

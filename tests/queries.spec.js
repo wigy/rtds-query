@@ -1028,7 +1028,7 @@ describe('Queries', () => {
     it('can search multiple table fields with aliases and overlapping names', async () => {
       await test([{
         table: 'users',
-        select: ['id', 'name', { age: 'years' }],
+        select: [{id: 'uid'}, 'name', { age: 'years' }],
         where: ['years = 21']
       }, {
         table: 'comments',
@@ -1036,7 +1036,7 @@ describe('Queries', () => {
         join: 'comments.userId = users.id',
         where: 'id < 3'
       }], [
-        { id: 1, name: 'Alice A', years: 21, todoId: 1, comment: 'A' }
+        { id: 1, uid: 1, name: 'Alice A', years: 21, todoId: 1, comment: 'A' }
       ],
       null,
       { comments: new Set([1]), users: new Set([1])});
