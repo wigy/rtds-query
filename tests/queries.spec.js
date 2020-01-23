@@ -126,35 +126,39 @@ describe('Queries', () => {
   });
 
   describe('Inner join query', () => {
-    xit('can make simple inner join', async () => {
+    it('can make simple inner join', async () => {
       await test([
         {
           table: 'users',
-          select: ['id', 'name']
+          select: [{id: 'uid'}, 'name']
         },
         {
           table: 'todos',
-          select: ['id', 'title', 'creatorId'],
+          select: ['id', 'title'],
           join: ['users.id', 'todos.creatorId']
         }
       ], [
         {
           id: 1,
+          uid: 1,
           name: 'Alice A',
           title: 'Find something'
         },
         {
-          id: 1,
+          id: 2,
+          uid: 1,
           name: 'Alice A',
           title: 'Cook something'
         },
         {
-          id: 2,
+          id: 3,
+          uid: 2,
           name: 'Bob B',
           title: 'Run unit-test'
         },
         {
-          id: 2,
+          id: 4,
+          uid: 2,
           name: 'Bob B',
           title: 'Write unit-test'
         }
@@ -969,7 +973,7 @@ describe('Queries', () => {
       {users: new Set([2, 3])});
     });
 
-    xit('can order more than one table and still use limit', async() => {
+    it('can order more than one table and still use limit', async() => {
       await test([
         {
           table: 'users',
@@ -979,25 +983,17 @@ describe('Queries', () => {
         {
           table: 'projects',
           order: ['name'],
-          select: ['id', 'name'],
+          select: ['id', 'creatorId', 'name'],
+          leftJoin: ['projects.creatorId', 'users.id'],
           limit: 3
         }
       ], [
-        {
-          age: 44,
-          name: 'Busy Project'
-        },
-        {
-          age: 44,
-          name: 'Empty Project'
-        },
-        {
-          age: 33,
-          name: 'Busy Project'
-        }
+        { uid: 3, age: 44, id: null, creatorId: null, name: null },
+        { uid: 2, age: 33, id: 2, creatorId: 2, name: 'Empty Project' },
+        { uid: 1, age: 21, id: 1, creatorId: 1, name: 'Busy Project' }
       ],
       null,
-      {users: new Set([2, 3]), projects: new Set([1, 2])});
+      {users: new Set([1, 2, 3]), projects: new Set([1, 2, null])});
     });
   });
 

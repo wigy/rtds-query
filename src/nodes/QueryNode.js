@@ -74,8 +74,9 @@ class QueryNode {
 
   /**
    * Collect variable resolving mappings as a list from the nearest definition toward the root.
-   * The list is a pairs [`short`, `table`, `long`] where `short` is short structural name,
-   * `table` is fully qualified name for SQL and `long` is long structural name containing parent names.
+   * The list is a pairs [`short`, `table`, `long`] where `short` is
+   * short structural name, `table` is fully qualified name for SQL and `long` is long
+   * structural name containing parent names.
    */
   scope() {
     return this.parent ? this.parent.scope() : [];
