@@ -3,6 +3,8 @@ const PK = require('./PK');
 
 // Helper to do item level post-processing.
 const processItem = (map, obj) => {
+  // TODO: Move to the new handler.
+  // TODO: Add test for processing.
   Object.keys(map).forEach(k => {
     switch (map[k]) {
       case 'json':
@@ -16,6 +18,7 @@ const processItem = (map, obj) => {
   });
 };
 
+// TODO: Delete these.
 // Helper to collect list of entries from line of data based on flat member list.
 const pick = (flat, line) => Object.entries(flat).reduce((prev, cur) => ({...prev, [cur[0]]: line[cur[1]]}), {});
 
