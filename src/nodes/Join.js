@@ -19,7 +19,12 @@ class Join extends QueryNode {
     if (!q.table) {
       throw new RTDSError(`Join table missing in query ${JSON.stringify(q)}`);
     }
-
+    if (q.type === 'cross') {
+      // This does not work anymore in intended way after refactoring more generic Formula
+      // class, which now removes duplicates. It would need additional flag for Formula
+      // in order to NOT remove duplicates as by default.
+      throw new RTDSError('Cross joins not supported.');
+    }
     super({
       type: q.type,
       table: q.table,

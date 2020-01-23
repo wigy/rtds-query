@@ -8,7 +8,8 @@ describe('Catches invalid queries', () => {
 
   before(async () => {
     await driver.initialize({
-      users: new Set(['id', 'name'])
+      users: new Set(['id', 'name', 'age']),
+      projects: new Set(['id', 'name'])
     });
   });
 
@@ -52,13 +53,14 @@ describe('Catches invalid queries', () => {
           {
             table: 'users',
             order: ['-age'],
-            select: ['age'],
+            select: ['id', 'age'],
             limit: 2
           },
           {
             table: 'projects',
             order: ['name'],
-            select: ['name'],
+            select: ['name', 'userId'],
+            join: ['users.id', 'projects.userId'],
             limit: 3
           }
         ]).buildLimitSQL(driver),
@@ -90,6 +92,24 @@ describe('Catches invalid queries', () => {
       assert.throws(
         () => q.updateSQL(driver, {id: 99, address: 'No way'}),
         new RTDSError("A field 'address' is not defined in update query for 'users'.")
+      );
+    });
+  });
+
+  describe('Joins', () => {
+    it('refuses cross-joins', async () => {
+      assert.throws(
+        () => new Query([
+          {
+            table: 'users',
+            select: [{id: 'uid'}, 'age']
+          },
+          {
+            table: 'projects',
+            select: [{id: 'pid'}, 'name']
+          }
+        ]),
+        new RTDSError('Cross joins not supported.')
       );
     });
   });

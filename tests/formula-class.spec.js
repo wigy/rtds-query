@@ -167,22 +167,6 @@ describe('Formula class', () => {
     }));
   });
 
-  it('can be constructed from cross join query', () => {
-    const q = new Query([
-      {
-        table: 'users',
-        select: ['age']
-      },
-      {
-        table: 'projects',
-        select: ['name']
-      }
-    ]);
-    assert.deepStrictEqual(q.getPostFormula(), new Formula({
-      flat: { name: 'name', age: 'age' }
-    }));
-  });
-
   it('can be constructed from query with members', () => {
     const q = new Query({
       table: 'todos',

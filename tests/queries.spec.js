@@ -125,48 +125,6 @@ describe('Queries', () => {
     });
   });
 
-  xdescribe('Cross join query', () => {
-    it('can make simple cross join', async () => {
-      await test([
-        {
-          table: 'users',
-          select: [{id: 'uid'}, 'age']
-        },
-        {
-          table: 'projects',
-          select: [{id: 'pid'}, 'name']
-        }
-      ], [
-        {
-          age: 21,
-          name: 'Busy Project'
-        },
-        {
-          age: 21,
-          name: 'Empty Project'
-        },
-        {
-          age: 33,
-          name: 'Busy Project'
-        },
-        {
-          age: 33,
-          name: 'Empty Project'
-        },
-        {
-          age: 44,
-          name: 'Busy Project'
-        },
-        {
-          age: 44,
-          name: 'Empty Project'
-        }
-      ],
-      null,
-      { users: new Set([1, 2, 3]), projects: new Set([1, 2])});
-    });
-  });
-
   describe('Inner join query', () => {
     xit('can make simple inner join', async () => {
       await test([
