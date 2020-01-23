@@ -554,7 +554,6 @@ describe('Queries', () => {
   });
 
   describe('Collections', () => {
-    // TODO: Collections of collections.
     it('can collect members as an array', async () => {
       await test([
         {
@@ -866,6 +865,61 @@ describe('Queries', () => {
       {
         comments: new Set([1, 2, 3, null]),
         projects: new Set([1, 2, null]),
+        users: new Set([1, 3, 2])
+      });
+    });
+
+    it('can have collections inside collections', async () => {
+      await test([
+        {
+          table: 'users',
+          select: ['id', 'name'],
+          collections: [
+            {
+              table: 'todos',
+              select: ['id', 'title'],
+              leftJoin: ['todos.creatorId', 'users.id'],
+              collections: [
+                {
+                  table: 'comments',
+                  select: ['id', 'comment'],
+                  leftJoin: ['comments.todoId', 'todos.id']
+                }
+              ]
+            }
+          ]
+        }
+      ], [
+        {
+          id: 1,
+          name: 'Alice A',
+          todos: [
+            { id: 2, title: 'Cook something', comments: [] },
+            {
+              id: 1,
+              title: 'Find something',
+              comments: [
+                { id: 1, comment: 'A' },
+                { id: 2, comment: 'B' },
+                { id: 3, comment: 'C' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Bob B',
+          todos: [
+            { id: 3, title: 'Run unit-test' },
+            { id: 4, title: 'Write unit-test' }
+          ]
+        },
+        { id: 3, name: 'Carl C', todos: [] }
+      ],
+      null,
+      {
+        comments: new Set([1, 2, 3, null]),
+        todos: new Set([1, 2, 3, 4, null]),
         users: new Set([1, 3, 2])
       });
     });
