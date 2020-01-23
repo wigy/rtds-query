@@ -23,6 +23,10 @@ class Update extends MainQuery {
     }
   }
 
+  getType() {
+    return 'update';
+  }
+
   getFields() {
     return this.update;
   }

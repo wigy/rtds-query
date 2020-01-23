@@ -11,13 +11,17 @@ const PK = require('../PK');
  * - `table` name of the table
  * - `[pk]` name of the primary key (default 'id')
  */
-class Update extends MainQuery {
+class Delete extends MainQuery {
   constructor(q) {
     super({
       delete: q.delete,
       table: q.table,
       pk: q.pk || null
     });
+  }
+
+  getType() {
+    return 'delete';
   }
 
   getFields() {
@@ -55,7 +59,7 @@ class Update extends MainQuery {
     if (typeof q.delete === 'string') {
       q.delete = [q.delete];
     }
-    return new Update({
+    return new Delete({
       delete: q.delete.map(s => Field.parse(s, q.table)),
       table: q.table,
       pk: q.pk
@@ -63,4 +67,4 @@ class Update extends MainQuery {
   }
 }
 
-module.exports = Update;
+module.exports = Delete;

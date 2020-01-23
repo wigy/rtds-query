@@ -59,6 +59,13 @@ class QueryNode {
   }
 
   /**
+   * Return the type of the query as 'select', 'create', 'update' or 'delete'.
+   */
+  getType() {
+    throw new RTDSError(`A query node ${this.constructor.name} does not implement getName().`);
+  }
+
+  /**
    * Collect all names up until root element from parent chain separated by dots.
    */
   getFullName() {

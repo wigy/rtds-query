@@ -1,5 +1,4 @@
 const assert = require('assert');
-const fs = require('fs');
 const path = require('path');
 const { Query, Driver } = require('../src');
 
@@ -7,17 +6,6 @@ const { Query, Driver } = require('../src');
 const DEBUG = false;
 // If set, throw assertions.
 const ASSERT = true;
-
-// Helper to read in SQL-file.
-const readSql = async (driver, filePath) => {
-  const fileContent = fs.readFileSync(filePath).toString('utf-8');
-  for (let sql of fileContent.split(';')) {
-    sql = sql.trim();
-    if (sql) {
-      await driver.runQuery(sql);
-    }
-  }
-};
 
 describe('Queries', () => {
   let driver;
@@ -29,7 +17,7 @@ describe('Queries', () => {
     const DATABASE_URL = process.env.DATABASE_URL || `sqlite:///${__dirname}/test.sqlite`;
     driver = Driver.create(DATABASE_URL);
 
-    await readSql(driver, path.join(__dirname, 'migrations/init.sql'));
+    await driver.runSqlFile(path.join(__dirname, 'migrations/init.sql'));
     await driver.initialize();
   });
 
@@ -37,7 +25,7 @@ describe('Queries', () => {
    * Drop all testing tables.
    */
   after(async () => {
-    await readSql(driver, path.join(__dirname, 'migrations/exit.sql'));
+    await driver.runSqlFile(path.join(__dirname, 'migrations/exit.sql'));
   });
 
   /**
@@ -272,7 +260,7 @@ describe('Queries', () => {
   });
 
   describe('Left join query', () => {
-    xit('can make simple left join', async () => {
+    it('can make simple left join', async () => {
       await test([
         {
           table: 'todos',
@@ -280,24 +268,32 @@ describe('Queries', () => {
         },
         {
           table: 'users',
-          select: [{id: 'id'}, {name: 'owner'}],
+          select: [{id: 'uid'}, {name: 'owner'}],
           leftJoin: ['users.id', 'todos.ownerId']
         }
       ], [
         {
+          uid: null,
           owner: null,
+          id: 1,
           title: 'Find something'
         },
         {
+          uid: 3,
           owner: 'Carl C',
+          id: 2,
           title: 'Cook something'
         },
         {
+          uid: 2,
           owner: 'Bob B',
+          id: 3,
           title: 'Run unit-test'
         },
         {
+          uid: null,
           owner: null,
+          id: 4,
           title: 'Write unit-test'
         }
       ],

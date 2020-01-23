@@ -1,3 +1,4 @@
+const fs = require('fs');
 const RTDSError = require('./RTDSError');
 
 /**
@@ -119,6 +120,21 @@ class Driver {
    */
   postProcess(data, formula) {
     return formula.process(data);
+  }
+
+  /**
+   * Execute SQL file on the given path.
+   * @param {String} path
+   */
+  async runSqlFile(path) {
+    const fileContent = fs.readFileSync(path).toString('utf-8');
+    // TODO: Naive splitting needs to be improved.
+    for (let sql of fileContent.split(';')) {
+      sql = sql.trim();
+      if (sql) {
+        await this.runQuery(sql);
+      }
+    }
   }
 
   static create(uri) {

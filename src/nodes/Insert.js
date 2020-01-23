@@ -23,6 +23,10 @@ class Insert extends MainQuery {
     }
   }
 
+  getType() {
+    return 'create';
+  }
+
   getFields() {
     return this.insert;
   }

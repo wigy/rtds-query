@@ -12,6 +12,10 @@ class ContainerNode extends QueryNode {
     return null;
   }
 
+  getType() {
+    return this.children[0].getType();
+  }
+
   buildOrderSQL(driver) {
     return this.children.reduce((prev, cur) => prev.concat(cur.buildOrderSQL(driver)), []);
   }

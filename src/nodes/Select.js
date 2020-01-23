@@ -73,6 +73,10 @@ class Select extends MainQuery {
     }
   }
 
+  getType() {
+    return 'select';
+  }
+
   getFields() {
     return this.select;
   }

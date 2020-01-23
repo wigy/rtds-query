@@ -63,6 +63,13 @@ class Query {
   }
 
   /**
+   * Return the type of the query as 'select', 'create', 'update' or 'delete'.
+   */
+  getType() {
+    return this.root.getType();
+  }
+
+  /**
    * Create new query that selects also table primary keys.
    * @returns {Query}
    */
@@ -91,56 +98,6 @@ class Query {
     // console.log('OUT');
     // copy.dump();
 
-    return copy;
-  }
-
-  /**
-   * Create new query that selects also table primary keys.
-   * @returns {Query}
-   */
-  NEWselectPKs() {
-    const chain = [];
-    // TODO: Work in progress.
-    const changeNode = (oldNode) => {
-      // Clone the node.
-      let node = clone(oldNode);
-      node.root = null;
-      node.parent = null;
-      node.children = [];
-      node.prev = null;
-      node.next = null;
-      // Handle Select.
-      if (node instanceof Select) {
-        chain.push(node);
-        const selects = PK.asArray(node.pk).map((s, i) => {
-          const key = `PK[${node.table}[${i}]]`;
-          return Field.parse({[s]: key}, node.table);
-        });
-        selects.forEach(s => node.addChild(s));
-        node.select = node.select.concat(selects);
-      // Handle other chained nodes.
-      } else if (node instanceof Insert) {
-        const select = PK.asArray(node.pk).map((s, i) => {
-          const key = `PK[${node.table}[${i}]]`;
-          return Field.parse({[s]: key}, node.table);
-        });
-        node = new Select({table: node.table, pk: node.pk, select});
-        chain.push(node);
-      } else {
-      // Handle children.
-        if (node.children) {
-          for (const c of node.children) {
-            node.addChild(changeNode(c));
-          }
-        }
-      }
-      return node;
-    };
-
-    const copy = new Query(changeNode(this.root));
-    for (let i = 1; i < chain.length; i++) {
-      chain[i - 1].chain(chain[i]);
-    }
     return copy;
   }
 
