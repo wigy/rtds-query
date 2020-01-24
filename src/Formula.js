@@ -1,87 +1,4 @@
-const RTDSError = require('./RTDSError');
 const PK = require('./PK');
-
-// Helper to do item level post-processing.
-const processItem = (map, obj) => {
-  // TODO: Move to the new handler.
-  // TODO: Add test for processing.
-  Object.keys(map).forEach(k => {
-    switch (map[k]) {
-      case 'json':
-        if (typeof obj[k] === 'string') {
-          obj[k] = JSON.parse(obj[k]);
-        }
-        break;
-      default:
-        throw new RTDSError(`No such processing as '${map[k]}'.`);
-    }
-  });
-};
-
-// TODO: Delete these.
-// Helper to collect list of entries from line of data based on flat member list.
-const pick = (flat, line) => Object.entries(flat).reduce((prev, cur) => ({...prev, [cur[0]]: line[cur[1]]}), {});
-
-// Helper to construct entry for one line of data and update related arrays.
-const entry = (line, formula, arrays) => {
-  let ret = formula.flat ? pick(formula.flat, line) : {};
-  if (formula.objects) {
-    const value = {};
-    Object.entries(formula.objects).map(([k, v]) => {
-      value[k] = entry(line, v, arrays);
-    });
-    Object.assign(ret, value);
-  }
-  if (formula.arrays) {
-    const pk = PK.getPKasKey(formula.pk, ret);
-    Object.entries(formula.arrays).map(([arrayName, arrayFormula]) => {
-      if (!arrays[arrayName]) {
-        arrays[arrayName] = {};
-      }
-      if (!arrays[arrayName][pk]) {
-        arrays[arrayName][pk] = []; // Here we collect items.
-        arrays[arrayName][`__PKS[${pk}]__`] = new Set(); // Here we collect PKs of the items added.
-        ret[`__array[${arrayName}]__`] = pk;
-      } else {
-        ret = undefined;
-      }
-      const item = entry(line, arrayFormula, arrays);
-      if (PK.hasNonNullPK(arrayFormula.pk, item)) {
-        const itemPK = PK.getPKasKey(arrayFormula.pk, item);
-        // Collect keys so that in case of multiple left joins we don't add the same twice.
-        if (!arrays[arrayName][`__PKS[${pk}]__`].has(itemPK)) {
-          arrays[arrayName][pk].push(item);
-          arrays[arrayName][`__PKS[${pk}]__`].add(itemPK);
-        }
-      }
-    });
-  }
-  if (ret !== undefined && formula.process) {
-    processItem(formula.process, ret);
-  }
-  return ret;
-};
-
-// Helper to process entire formula.
-const OLDprocess = (data, rules) => {
-  const arrays = {};
-  const ret = [];
-  // Process items and collect arrays.
-  data.forEach(line => {
-    const item = entry(line, rules, arrays);
-    if (item !== undefined) {
-      ret.push(item);
-    }
-  });
-  // Attach arrays into their parents.
-  Object.entries(arrays).forEach(([arrayName, collection]) => {
-    for (let i = 0; i < ret.length; i++) {
-      ret[i][arrayName] = collection[ret[i][`__array[${arrayName}]__`]];
-      delete ret[i][`__array[${arrayName}]__`];
-    }
-  });
-  return ret;
-};
 
 /**
  * A processing formula.
@@ -96,11 +13,14 @@ const OLDprocess = (data, rules) => {
  *  (See test files for examples.)
  */
 class Formula {
-  constructor(rules = {}) {
+  /**
+   * Create formula.
+   * @param {Object} rules
+   */
+  constructor(rules = {}, driver = null) {
     this.rules = {};
     Object.assign(this.rules, rules);
     this.reset();
-    // console.dir(rules, {depth: null});
   }
 
   reset() {
@@ -111,17 +31,20 @@ class Formula {
 
   /**
    * Combine rows of data to object structures according to the formula.
+   * @param {Object[]} data
+   * @param {Driver} [driver] Needed only for formulas with post processing.
    */
-  process(data) {
+  process(data, driver) {
     // console.dir(data, {depth: null});
     const map = this.fieldMapping(this.rules);
     // console.log(map);
     this.applyMapToList(map, data);
-    const res = this.collectResults(map, data);
+    const res = this.collectResults(map, data, driver);
     // console.dir(res, {depth: null});
     return res;
   }
 
+  // TODO: Docs for all functions.
   fieldMapping(rule, root = '', parent = null, method = 'root') {
     let ret = [];
     const pk = PK.asArray(rule.pk);
@@ -137,7 +60,8 @@ class Formula {
         pks: pk,
         field,
         parent,
-        method
+        method,
+        process: rule.process || null
       });
     }
     Object.entries(rule.objects || {}).forEach(([memberName, subRule]) => {
@@ -146,6 +70,7 @@ class Formula {
     Object.entries(rule.arrays || {}).forEach(([memberName, subRule]) => {
       ret = ret.concat(this.fieldMapping(subRule, `${root}/${memberName}`, `${root}/`, 'push'));
     });
+
     return ret;
   }
 
@@ -175,13 +100,13 @@ class Formula {
     item.__pks__[path] = key;
   }
 
-  collectResults(map, data) {
+  collectResults(map, data, driver = null) {
     const res = [];
     map.forEach(m => {
       const { path, method } = m;
       this.pks[path] = new Set();
       this.objects[path] = {};
-      const fn = this.getMethod(method);
+      const fn = this.getMethod(method, driver);
       data.forEach(item => {
         fn(res, m, item);
       });
@@ -195,7 +120,7 @@ class Formula {
     return obj;
   }
 
-  getMethod(name) {
+  getMethod(name, driver = null) {
     switch (name) {
       case 'push':
         return (_, {from, to, path, pks, field, parent, method}, item) => {
@@ -229,11 +154,14 @@ class Formula {
           }
         };
       case 'root':
-        return (res, {from, to, path}, item) => {
+        return (res, {from, to, path, process}, item) => {
           const pk = item.__pks__[path];
           if (!this.pks[path].has(pk)) {
             this.pks[path].add(pk);
             const obj = this.getObject(from, to, item);
+            if (process) {
+              Object.entries(process).forEach(([field, processName]) => (obj[field] = driver.postProcessItem(processName, obj[field])));
+            }
             res.push(obj);
             this.objects[path][pk] = obj;
           }

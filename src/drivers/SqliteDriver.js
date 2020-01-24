@@ -93,6 +93,14 @@ class SqliteDriver extends SqlDriver {
       });
     });
   }
+
+  /**
+   * Transform strings to JSON, since sqlite store JSON fields as a string.
+   * @param {String} str
+   */
+  jsonPostProcess(str) {
+    return typeof str === 'string' ? JSON.parse(str) : str;
+  }
 }
 
 module.exports = SqliteDriver;

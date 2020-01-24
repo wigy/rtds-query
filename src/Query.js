@@ -185,7 +185,7 @@ class Query {
     if (noPostProcessing) {
       return data;
     }
-    return driver.postProcess(data, this.getPostFormula());
+    return driver.postProcess(data, this.getPostFormula(), driver);
   }
 
   /**

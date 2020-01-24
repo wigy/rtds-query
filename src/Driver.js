@@ -115,11 +115,23 @@ class Driver {
 
   /**
    * Run the post-processing for data.
-   * @param {Object[]} data
    * @param {} formula
    */
   postProcess(data, formula) {
     return formula.process(data);
+  }
+
+  /**
+   * Run the post-processing for data item.
+   * @param {String} ruleName
+   * @param {Object[]} data
+   */
+  postProcessItem(ruleName, data) {
+    const fn = `${ruleName}PostProcess`;
+    if (typeof this[fn] !== 'function') {
+      throw new RTDSError(`Driver ${this.constructor.name} does not implement ${fn}().`);
+    }
+    return this[fn](data);
   }
 
   /**

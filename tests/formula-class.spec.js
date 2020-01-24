@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { Query, Formula } = require('../src');
+const { Query, Formula, Driver } = require('../src');
 
 describe('Formula class', () => {
   /**
@@ -67,6 +67,27 @@ describe('Formula class', () => {
         ]
       }
     ]);
+  });
+
+  it('can handle JSON data for sqlite', () => {
+    const data = [
+      { id: 10, data: '{"x": 1, "y": 2}' },
+      { id: 20, data: '{"x": 2, "y": 3}' }
+    ];
+    const q = new Query({
+      table: 'foo',
+      select: ['id', 'data'],
+      process: {
+        data: 'json'
+      }
+    });
+    const f = q.getPostFormula();
+    assert.deepStrictEqual(f.process(data, Driver.create(`sqlite:///${__dirname}/test.sqlite`)),
+      [
+        { id: 10, data: { x: 1, y: 2 } },
+        { id: 20, data: { x: 2, y: 3 } }
+      ]
+    );
   });
 
   it('can post process collection data with explicit key', () => {
