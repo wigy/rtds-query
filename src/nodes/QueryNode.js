@@ -38,13 +38,6 @@ class QueryNode {
   }
 
   /**
-   * Get a list of tables involved.
-   */
-  getTables() {
-    return this.getChain().map(node => node.table);
-  }
-
-  /**
    * Get the name for debugging purposes.
    */
   getDumpName() {

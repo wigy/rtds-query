@@ -49,6 +49,13 @@ class Query {
   }
 
   /**
+   * Get a list of tables involved.
+   */
+  getTables() {
+    return this.root.getChain().map(node => node.table).filter(table => table);
+  }
+
+  /**
    * Create new query from this by adding extra condition.
    * @param {String} cond
    * @returns {Query}
@@ -113,7 +120,7 @@ class Query {
     keys = keys.map(k => [...Query.PK_REGEX.exec(k), k]);
     const ret = {};
 
-    for (const table of this.root.getTables()) {
+    for (const table of this.getTables()) {
       ret[table] = [];
     }
 
