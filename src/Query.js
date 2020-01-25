@@ -113,6 +113,10 @@ class Query {
     keys = keys.map(k => [...Query.PK_REGEX.exec(k), k]);
     const ret = {};
 
+    for (const table of this.root.getTables()) {
+      ret[table] = [];
+    }
+
     // Reorganize all primary keys.
     for (let i = 0; i < data.length; i++) {
       const obj = {};
@@ -131,9 +135,6 @@ class Query {
       // Trim down singletons and collect PKs by table.
       Object.entries(obj).forEach(([name, pks]) => {
         const [, table] = name.split('/');
-        if (!ret[table]) {
-          ret[table] = [];
-        }
         if (pks && pks.length === 1) {
           ret[table].push(pks[0]);
         } else {
