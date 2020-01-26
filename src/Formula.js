@@ -44,7 +44,26 @@ class Formula {
     return res;
   }
 
-  // TODO: Docs for all functions.
+  /**
+   * Collect information how to map single row of data to actual data structure.
+   * @param {Object} rule
+   * @param {String} root
+   * @param {String} parent
+   * @param {String} method
+   *
+   * Return value is a list of objects
+   * ```
+   * {
+   *   from: <array of field names in original row>
+   *   to: <array of field names in targer structure>
+   *   path: <slash seprated path inside the structure>
+   *   field: <name of the field>
+   *   parent: <parent path>
+   *   method: <handling as 'root', 'assign' or 'push'>
+   *   process: <post processing rules, if any>
+   * }
+   * ```
+   */
   fieldMapping(rule, root = '', parent = null, method = 'root') {
     let ret = [];
     const pk = PK.asArray(rule.pk);
@@ -74,6 +93,11 @@ class Formula {
     return ret;
   }
 
+  /**
+   * A preparation step to pre-process original rows and collect PK and object information.
+   * @param {Object[]} map
+   * @param {Object[]} data
+   */
   applyMapToList(map, data) {
     if (data.length && '__pks__' in data[0]) {
       throw new Error('A member __pks__ is not allowed in data.');
@@ -100,6 +124,12 @@ class Formula {
     item.__pks__[path] = key;
   }
 
+  /**
+   * Construct result data applying mapping to the original data.
+   * @param {Object[]} map
+   * @param {Object[]} data
+   * @param {Driver} driver
+   */
   collectResults(map, data, driver = null) {
     const res = [];
     map.forEach(m => {
@@ -114,12 +144,23 @@ class Formula {
     return res;
   }
 
+  /**
+   * Construct a new object using mapping instruction.
+   * @param {String[]} from
+   * @param {String[]} to
+   * @param {Object} item
+   */
   getObject(from, to, item) {
     const obj = {};
     from.forEach((f, i) => (obj[to[i]] = item[from[i]]));
     return obj;
   }
 
+  /**
+   * Construct a function handling the data processing for the particular structure part.
+   * @param {String} name
+   * @param {Driver} driver
+   */
   getMethod(name, driver = null) {
     switch (name) {
       case 'push':
