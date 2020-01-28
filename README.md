@@ -1,6 +1,6 @@
-# Real-Time Data Sync - Query Constructor
+# Real-Time Data Sync - Queries
 
-This is a query parser and executor for [https://github.com/wigy/rtds-server](RTDS Server).
+This is a query parser and executor for [RTDS Server](https://github.com/wigy/rtds-server).
 
 ## Drivers
 
@@ -81,7 +81,7 @@ targets, like in `q.delete(driver, {name: 'Delete Me'})` or `q.delete(driver, {i
 
 The resulting structure can contain complex parts that are automatically constructed
 from the query. The resulting JSON-structures are especially suitable for rendering with
-[https://github.com/wigy/rtds-client](RTDS Client).
+[RTDS Client](https://github.com/wigy/rtds-client).
 
 ### Members, Collections and Joins
 
@@ -165,12 +165,23 @@ Defines a insertion query. A list of allowed columns for specifying the new obje
 as an array. Allowed only at the top level of the query description.
 
 ### `join`
+Define inner join between tables. Argument is a pair of two keys in the format `table.column`.
+Note that table must be the original table name and NOT alias. Also columns do no need to be
+listed in the `select`.
+
 ### `leftJoin`
+Define left join between tables. Argument is a pair of two keys in the format `table.column`.
+Note that table must be the original table name and NOT alias. Also columns do no need to be
+listed in the `select`.
 
 ### `members`
 An array of query descriptions, interpreted as additional joins in the query, which are
 assigned as an additional members to the parent object using the table name (or its alias
 from `as`) as a name of the member.
+
+### `order`
+To set order for results a single string or multiple strings of the column names can be used.
+If the name is prefixed with `-`, then the order is descending.
 
 ### `pk`
 Primary keys for the related table. If not defined, the default is single key `id`. If given
@@ -179,6 +190,27 @@ multiple column primary keys. Note that it does not necessarily have anything to
 actual database. Any field can be used here and it is used for row identification purposes only.
 
 ### `process`
+Define a mapping from column names to the processing instructions defined as a string. The
+string specifies a function to run in the end for that particular column value. Functions are
+implemented in driver specific manner. Currently only processing function is `"json"`, which
+handles conversion from string value to the JSON-object format. Sqlite implementation stores
+JSON-fields as text and this fixes it.
+
 ### `select`
+Columns to collect from a table. Either single string value or an array of multiple values.
+Can be also defined as aliases like `{"originalKey": "newKey"}`. Note that currently each
+alias needs to be defined separately and not in the single object. All columns, that are used
+in the `where` conditions or additional conditions given as an argument, must be listed
+in the `select` field.
+
 ### `table`
+Defines the name of the table to use. Also, if no alias defined, it is used as a name of the
+member or collection inside the sub-query definitions.
+
 ### `update`
+Defines a update query. A list of allowed columns for specifying the changes are listed
+as an array. Allowed only at the top level of the query description.
+
+### `where`
+Additional condition for the query as a string expression. Each variable can refer only columns
+on the table where the condition is given or any of its parents.
