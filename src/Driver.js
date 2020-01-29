@@ -140,8 +140,8 @@ class Driver {
    */
   async runSqlFile(path) {
     const fileContent = fs.readFileSync(path).toString('utf-8');
-    // TODO: Naive splitting needs to be improved.
-    for (let sql of fileContent.split(';')) {
+    const r = /((?:[^;"]+|"[^"]*"|'[^']*')*);/;
+    for (let sql of fileContent.split(r)) {
       sql = sql.trim();
       if (sql) {
         await this.runQuery(sql);
