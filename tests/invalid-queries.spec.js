@@ -219,7 +219,7 @@ describe('Catches invalid queries', () => {
       ]).selectSQL(driver),
       (err) => {
         assert(err instanceof RTDSError);
-        assert(/Error: Contradicting aliases for `id`: `users\d+`\.`id` and `todos\d+`\.`id`\./.test(err));
+        assert(/Error: Contradicting aliases for "id": "users\d+"\."id" and "todos\d+"\."id"\./.test(err));
         return true;
       });
     });

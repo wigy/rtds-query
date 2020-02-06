@@ -11,6 +11,7 @@
   "dependencies": {
     "clone": "^2.1.2",
     "escape-string-regexp": "^2.0.0",
+    "pg": "^7.18.1",
     "pq": "0.0.3",
     "sqlite3": "^4.1.1"
   },

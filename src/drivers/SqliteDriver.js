@@ -5,7 +5,7 @@ const SqlDriver = require('./SqlDriver');
  */
 class SqliteDriver extends SqlDriver {
   constructor(url) {
-    super(url);
+    super(url, () => '?');
     const sqlite3 = require('sqlite3').verbose();
     this.db = new sqlite3.Database(url.pathname);
   }
@@ -49,7 +49,7 @@ class SqliteDriver extends SqlDriver {
   async runUpdateQuery(sqls, valueList, pks) {
     const db = this.db;
     const runOne = async (sql, values) => new Promise((resolve, reject) => {
-      const [, table] = /UPDATE `(.*?)`/.exec(sql);
+      const [, table] = /UPDATE "(.*?)"/.exec(sql);
       db.run(sql, values, function(err, res) {
         if (err) {
           reject(err);

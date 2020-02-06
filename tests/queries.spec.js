@@ -16,8 +16,8 @@ describe('Queries', () => {
   before(async () => {
     const DATABASE_URL = process.env.DATABASE_URL || `sqlite:///${__dirname}/test.sqlite`;
     driver = Driver.create(DATABASE_URL);
-
-    await driver.runSqlFile(path.join(__dirname, 'migrations/init.sql'));
+    const protocol = new URL(DATABASE_URL).protocol.replace(':', '');
+    await driver.runSqlFile(path.join(__dirname, `migrations/init-${protocol}.sql`));
     await driver.initialize();
   });
 
@@ -557,6 +557,7 @@ describe('Queries', () => {
           table: 'projects',
           pk: 'id',
           select: ['id', 'name'],
+          order: 'id',
           members: [
             {
               table: 'users',
@@ -570,6 +571,7 @@ describe('Queries', () => {
                   pk: 'id',
                   select: ['id', 'comment'],
                   leftJoin: ['comments.userId', 'creator.id'],
+                  order: 'id',
                   members: [
                     {
                       table: 'todos',
@@ -675,10 +677,12 @@ describe('Queries', () => {
           table: 'users',
           select: ['id', 'name'],
           pk: ['id', 'name'],
+          order: 'id',
           collections: [
             {
               table: 'comments',
               pk: 'comment',
+              order: 'id',
               select: ['id', 'comment'],
               leftJoin: ['comments.userId', 'users.id']
             }
@@ -723,10 +727,12 @@ describe('Queries', () => {
         {
           table: 'users',
           select: ['id', 'name'],
+          order: 'id',
           collections: [
             {
               table: 'comments',
               select: ['id', 'comment'],
+              order: 'id',
               leftJoin: ['comments.userId', 'users.id']
             }
           ],
@@ -735,6 +741,7 @@ describe('Queries', () => {
               table: 'projects',
               as: 'project',
               select: ['id', 'name'],
+              order: 'project.id',
               leftJoin: ['project.creatorId', 'users.id']
             }
           ]
@@ -777,14 +784,17 @@ describe('Queries', () => {
         {
           table: 'users',
           select: ['id', 'name'],
+          order: 'id',
           collections: [
             {
               table: 'comments',
+              order: 'id',
               select: ['id', 'comment'],
               leftJoin: ['comments.userId', 'users.id']
             },
             {
               table: 'projects',
+              order: 'id',
               select: ['id', 'name'],
               leftJoin: ['projects.creatorId', 'users.id']
             }
@@ -832,14 +842,17 @@ describe('Queries', () => {
         {
           table: 'users',
           select: ['id', 'name'],
+          order: 'id',
           collections: [
             {
               table: 'todos',
               select: ['id', 'title'],
+              order: 'id',
               leftJoin: ['todos.creatorId', 'users.id'],
               collections: [
                 {
                   table: 'comments',
+                  order: 'id',
                   select: ['id', 'comment'],
                   leftJoin: ['comments.todoId', 'todos.id']
                 }
@@ -852,7 +865,6 @@ describe('Queries', () => {
           id: 1,
           name: 'Alice A',
           todos: [
-            { id: 2, title: 'Cook something', comments: [] },
             {
               id: 1,
               title: 'Find something',
@@ -861,6 +873,11 @@ describe('Queries', () => {
                 { id: 2, comment: 'B' },
                 { id: 3, comment: 'C' }
               ]
+            },
+            {
+              id: 2,
+              title: 'Cook something',
+              comments: []
             }
           ]
         },
@@ -1143,11 +1160,11 @@ describe('Queries', () => {
       ]);
 
       const users = await new Query({table: 'users', select: ['id', 'name', 'age'], orderBy: 'id'}).select(driver);
-      assert.deepStrictEqual(users, [
+      assert.deepStrictEqual(new Set(users), new Set([
         { id: 1, name: 'Foo', age: 1 },
         { id: 2, name: 'Bar', age: 2 },
         { id: 3, name: 'Carl C', age: 44 }
-      ]);
+      ]));
 
       return restoreUsers();
     });

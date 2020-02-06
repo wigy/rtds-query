@@ -158,6 +158,8 @@ class Driver {
         return Driver.createSql(url);
       case 'sqlite:':
         return Driver.createSqlite(url);
+      case 'postgres:':
+        return Driver.createPostgres(url);
       default:
         throw new RTDSError(`Driver for ${uri} not yet supported.`);
     }
@@ -171,6 +173,11 @@ class Driver {
   static createSqlite(uri) {
     const SqliteDriver = require('./drivers/SqliteDriver');
     return new SqliteDriver(uri);
+  }
+
+  static createPostgres(uri) {
+    const PostgresDriver = require('./drivers/PostgresDriver');
+    return new PostgresDriver(uri);
   }
 }
 
