@@ -1,4 +1,3 @@
-const { Client } = require('pg');
 const SqlDriver = require('./SqlDriver');
 
 /**
@@ -7,6 +6,13 @@ const SqlDriver = require('./SqlDriver');
 class PostgresDriver extends SqlDriver {
   constructor(url) {
     super(url, (_, index) => `$${index + 1}`);
+    let Client;
+    try {
+      Client = require('pg').Client;
+    } catch (err) {
+      throw new Error("Driver needs a package 'pg'. Please install it.");
+    }
+
     this.client = new Client({
       connectionString: url.href
     });

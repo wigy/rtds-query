@@ -6,7 +6,12 @@ const SqlDriver = require('./SqlDriver');
 class SqliteDriver extends SqlDriver {
   constructor(url) {
     super(url, () => '?');
-    const sqlite3 = require('sqlite3').verbose();
+    let sqlite3;
+    try {
+      sqlite3 = require('sqlite3').verbose();
+    } catch (err) {
+      throw new Error("Driver needs a package 'sqlite3'. Please install it.");
+    }
     this.db = new sqlite3.Database(url.pathname);
   }
 

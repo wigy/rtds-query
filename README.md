@@ -2,6 +2,22 @@
 
 This is a query parser and executor for [RTDS Server](https://github.com/wigy/rtds-server).
 
+## Installing
+
+You can install this
+```
+npm i rtds-query
+```
+and in addition you need one of the low-level drivers
+```
+npm i sqlite3
+npm i pg
+```
+or
+```
+npm i mysql
+```
+
 ## Drivers
 
 In order to execute queries, a driver needs to be instantiated. That is

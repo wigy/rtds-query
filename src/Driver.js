@@ -160,6 +160,8 @@ class Driver {
         return Driver.createSqlite(url);
       case 'postgres:':
         return Driver.createPostgres(url);
+      case 'mysql:':
+        return Driver.createMysql(url);
       default:
         throw new RTDSError(`Driver for ${uri} not yet supported.`);
     }
@@ -178,6 +180,11 @@ class Driver {
   static createPostgres(uri) {
     const PostgresDriver = require('./drivers/PostgresDriver');
     return new PostgresDriver(uri);
+  }
+
+  static createMysql(uri) {
+    const MysqlDriver = require('./drivers/MysqlDriver');
+    return new MysqlDriver(uri);
   }
 }
 
