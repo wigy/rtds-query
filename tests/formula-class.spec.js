@@ -90,6 +90,80 @@ describe('Formula class', () => {
     );
   });
 
+  it('can handle JSON data in members for sqlite', () => {
+    const data = [
+      { id: 10, 'bar.id': 1, 'bar.data': '{"x": 1, "y": 2}' },
+      { id: 20, 'bar.id': 2, 'bar.data': '{"x": 2, "y": 3}' }
+    ];
+    const q = new Query({
+      table: 'foo',
+      select: ['id'],
+      members: [{
+        table: 'bar',
+        select: ['id', 'data'],
+        process: {
+          data: 'json'
+        }
+      }]
+    });
+    const f = q.getPostFormula();
+    assert.deepStrictEqual(f.process(data, Driver.create(`sqlite:///${__dirname}/test.sqlite`)),
+      [
+        {
+          bar: {
+            data: { x: 1, y: 2 },
+            id: 1
+          },
+          id: 10
+        },
+        {
+          bar: {
+            data: { x: 2, y: 3 },
+            id: 2
+          },
+          id: 20
+        }
+      ]
+    );
+  });
+
+  it('can handle JSON data in collections for sqlite', () => {
+    const data = [
+      { id: 10, 'bar.id': 1, 'bar.data': '{"x": 1, "y": 2}' },
+      { id: 20, 'bar.id': 2, 'bar.data': '{"x": 2, "y": 3}' }
+    ];
+    const q = new Query({
+      table: 'foo',
+      select: ['id'],
+      collections: [{
+        table: 'bar',
+        select: ['id', 'data'],
+        process: {
+          data: 'json'
+        }
+      }]
+    });
+    const f = q.getPostFormula();
+    assert.deepStrictEqual(f.process(data, Driver.create(`sqlite:///${__dirname}/test.sqlite`)),
+      [
+        {
+          bar: [{
+            data: { x: 1, y: 2 },
+            id: 1
+          }],
+          id: 10
+        },
+        {
+          bar: [{
+            data: { x: 2, y: 3 },
+            id: 2
+          }],
+          id: 20
+        }
+      ]
+    );
+  });
+
   it('can post process collection data with explicit key', () => {
     const formula = new Formula({
       flat: { number: 'number', name: 'name', title: 'title' },

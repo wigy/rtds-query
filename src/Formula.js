@@ -162,12 +162,18 @@ class Formula {
    * @param {Driver} driver
    */
   getMethod(name, driver = null) {
+    const doProcessing = (process, obj) => {
+      if (process) {
+        Object.entries(process).forEach(([field, processName]) => (obj[field] = driver.postProcessItem(processName, obj[field])));
+      }
+    };
     switch (name) {
       case 'push':
-        return (_, {from, to, path, pks, field, parent, method}, item) => {
+        return (_, {from, to, path, pks, field, parent, process}, item) => {
           const obj = this.getObject(from, to, item);
           const pk = item.__pks__[path];
           if (!this.pks[path].has(pk)) {
+            doProcessing(process, obj);
             this.pks[path].add(pk);
             const ppk = item.__pks__[parent];
             if (PK.hasNonNullPK(pks, obj)) {
@@ -182,12 +188,13 @@ class Formula {
           }
         };
       case 'assign':
-        return (_, {from, to, path, field, parent}, item) => {
+        return (_, {from, to, path, field, parent, process}, item) => {
           const pk = item.__pks__[path];
           const ppk = item.__pks__[parent];
           if (!this.pks[path].has(pk)) {
             this.pks[path].add(pk);
             const obj = this.getObject(from, to, item);
+            doProcessing(process, obj);
             this.objects[path][pk] = obj;
             this.objects[parent][ppk][field] = obj;
           } else {
@@ -200,9 +207,7 @@ class Formula {
           if (!this.pks[path].has(pk)) {
             this.pks[path].add(pk);
             const obj = this.getObject(from, to, item);
-            if (process) {
-              Object.entries(process).forEach(([field, processName]) => (obj[field] = driver.postProcessItem(processName, obj[field])));
-            }
+            doProcessing(process, obj);
             res.push(obj);
             this.objects[path][pk] = obj;
           }

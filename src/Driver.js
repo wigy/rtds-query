@@ -118,7 +118,7 @@ class Driver {
    * @param {} formula
    */
   postProcess(data, formula) {
-    return formula.process(data);
+    return formula.process(data, this);
   }
 
   /**
