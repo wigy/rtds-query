@@ -12,7 +12,8 @@ const Field = require('./nodes/Field');
 const Parser = require('./Parser');
 const PK = require('./PK');
 
-/*********************************************************************************/
+// If set, show all SQL expressions.
+const DEBUG_SQL = true;
 
 /**
  * System independent presentation of the query structure.
@@ -158,6 +159,12 @@ class Query {
     return ret;
   }
 
+  debugSQL(sql) {
+    if (DEBUG_SQL) {
+      console.log(`${sql};`);
+    }
+  }
+
   /**
    * Create a cached copy of the SQL for retrieving all.
    * @param {Driver} driver
@@ -189,6 +196,7 @@ class Query {
    */
   async select(driver, where = null, {noPostProcessing = false, pkOnly = false} = {}) {
     const sql = this.selectSQL(driver, where, {pkOnly});
+    this.debugSQL(sql);
     const data = await driver.runSelectQuery(sql);
     if (noPostProcessing) {
       return data;
@@ -214,6 +222,7 @@ class Query {
    */
   async create(driver, obj) {
     const [sql, values] = this.createSQL(driver, obj);
+    this.debugSQL(sql);
     const data = await driver.runInsertQuery(sql, values, PK.asArray(this.root.pk));
     return data;
   }
@@ -237,6 +246,7 @@ class Query {
   async update(driver, obj) {
     const multi = obj instanceof Array;
     const [sql, values] = this.updateSQL(driver, obj);
+    this.debugSQL(sql);
     const data = await driver.runUpdateQuery(sql, values, PK.asArray(this.root.pk));
     return multi ? data : data[0];
   }
@@ -259,6 +269,7 @@ class Query {
    */
   async delete(driver, obj) {
     const [sql, values] = this.deleteSQL(driver, obj);
+    this.debugSQL(sql);
     const data = await driver.runDeleteQuery(sql, values, PK.asArray(this.root.pk));
     return data;
   }
